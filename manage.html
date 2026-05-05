@@ -8,7 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
-    <!-- مكاتب التشفير وقراءة الباركود -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
 
@@ -28,11 +27,9 @@
         .modern-input { width: 100%; background-color: #f1f5f9; border: 2px solid transparent; border-radius: 1rem; padding: 0.75rem 1rem; outline: none; font-weight: 600; transition: all 0.3s; }
         .modern-input:focus { background-color: #fff; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
         
-        /* Navigation Styles */
         .mobile-tab.active-nav { color: var(--primary); }
         .mobile-tab.active-nav .icon-bg { background-color: #e0e7ff; transform: translateY(-4px); }
 
-        /* Loading Screen */
         #loading-screen { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
         .thin-text { font-family: sans-serif; font-weight: 100; letter-spacing: 2px; margin-top: 15px; color: #333; }
         .loader-circle { width: 50px; height: 50px; border: 1px solid #ccc; border-top-color: #333; border-radius: 50%; animation: spin 1s linear infinite; }
@@ -64,31 +61,38 @@
         <h1 class="text-xl font-black text-slate-800 tracking-tight">kenzy <span class="text-indigo-600 font-normal">acadmy</span></h1>
     </header>
 
-    <!-- شريط التنقل السفلي -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-200 flex justify-around px-2 py-2 pb-safe z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] rounded-t-3xl hidden" id="bottom-nav">
-        <button onclick="switchTab('videos')" data-target="videos" class="mobile-tab tab-btn active-nav flex flex-col items-center gap-1 w-16 text-slate-400 transition-all">
+    <!-- شريط التنقل السفلي المحدث (تمت إضافة الدليل) -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-200 flex justify-around px-1 py-2 pb-safe z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] rounded-t-3xl hidden" id="bottom-nav">
+        <button onclick="switchTab('videos')" data-target="videos" class="mobile-tab tab-btn active-nav flex flex-col items-center gap-1 w-14 text-slate-400 transition-all">
             <div class="icon-bg w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300">
                 <i class="fas fa-video text-lg"></i>
             </div>
             <span class="text-[10px] font-bold">الفيديوهات</span>
         </button>
-        <button onclick="switchTab('quizzes')" data-target="quizzes" class="mobile-tab tab-btn flex flex-col items-center gap-1 w-16 text-slate-400 transition-all">
+        <button onclick="switchTab('quizzes')" data-target="quizzes" class="mobile-tab tab-btn flex flex-col items-center gap-1 w-14 text-slate-400 transition-all">
             <div class="icon-bg w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300">
                 <i class="fas fa-file-signature text-lg"></i>
             </div>
-            <span class="text-[10px] font-bold">الامتحانات</span>
+            <span class="text-[10px] font-bold">امتحانات</span>
         </button>
-        <button onclick="switchTab('results')" data-target="results" class="mobile-tab tab-btn flex flex-col items-center gap-1 w-16 text-slate-400 transition-all">
+        <button onclick="switchTab('results')" data-target="results" class="mobile-tab tab-btn flex flex-col items-center gap-1 w-14 text-slate-400 transition-all">
             <div class="icon-bg w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300">
                 <i class="fas fa-poll text-lg"></i>
             </div>
             <span class="text-[10px] font-bold">الدرجات</span>
         </button>
-        <button onclick="switchTab('scanner')" data-target="scanner" class="mobile-tab tab-btn flex flex-col items-center gap-1 w-16 text-slate-400 transition-all">
+        <button onclick="switchTab('scanner')" data-target="scanner" class="mobile-tab tab-btn flex flex-col items-center gap-1 w-14 text-slate-400 transition-all">
             <div class="icon-bg w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300">
                 <i class="fas fa-qrcode text-lg"></i>
             </div>
             <span class="text-[10px] font-bold">فحص QR</span>
+        </button>
+        <!-- الزر الجديد للدليل -->
+        <button onclick="switchTab('guide')" data-target="guide" class="mobile-tab tab-btn flex flex-col items-center gap-1 w-14 text-slate-400 transition-all">
+            <div class="icon-bg w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300">
+                <i class="fas fa-book-open text-lg"></i>
+            </div>
+            <span class="text-[10px] font-bold">الدليل</span>
         </button>
     </nav>
 
@@ -133,7 +137,7 @@
             <div id="quizListTableBody" class="space-y-3 pb-8"></div>
         </div>
 
-        <!-- إضافة الأسئلة (يظهر عند اختيار امتحان) -->
+        <!-- إضافة الأسئلة -->
         <div id="manageQuizDetailsSection" class="section-content hidden fade-in-up">
             <div class="flex justify-between items-center mb-4 px-2">
                 <h3 class="font-black text-slate-800 text-lg" id="editingQuizName"></h3>
@@ -189,10 +193,8 @@
         <div id="scanner-section" class="section-content hidden fade-in-up text-center">
             <div class="glass-panel p-5 rounded-3xl">
                 <h2 class="text-lg font-black text-slate-800 mb-4"><i class="fas fa-qrcode text-indigo-600"></i> فحص كود الطالب</h2>
-                <!-- شاشة الكاميرا -->
                 <div id="reader" class="mb-4 overflow-hidden rounded-2xl border-2 border-indigo-100 bg-black w-full aspect-square object-cover"></div>
                 
-                <!-- النتيجة -->
                 <div id="scanResult" class="hidden bg-emerald-50 border border-emerald-200 p-4 rounded-2xl mt-4">
                     <h3 class="text-emerald-700 font-black text-lg mb-2">تم الفحص ✅</h3>
                     <p class="font-bold text-slate-700 text-sm mb-1">الاسم: <span id="resName" class="text-indigo-600"></span></p>
@@ -203,22 +205,67 @@
             </div>
         </div>
 
+        <!-- 5. قسم دليل الاستخدام الجديد -->
+        <div id="guide-section" class="section-content hidden fade-in-up">
+            <div class="glass-panel p-6 rounded-3xl mb-6 bg-gradient-to-br from-indigo-50 to-white">
+                <h2 class="text-xl font-black text-indigo-900 mb-2 flex items-center gap-2">
+                    <i class="fas fa-book-reader text-indigo-600 text-2xl"></i> دليل إدارة المنصة
+                </h2>
+                <p class="text-sm text-slate-600 font-bold mb-6">مرحباً بك! هذا الدليل السريع يشرح لك كيفية التحكم في المنصة بخطوات بسيطة.</p>
+
+                <div class="space-y-4 pb-8">
+                    <!-- الفيديوهات -->
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <h3 class="font-black text-slate-800 mb-2"><i class="fas fa-video text-rose-500 ml-1"></i> 1. مكتبة الفيديوهات</h3>
+                        <ul class="text-sm text-slate-600 space-y-2 list-disc list-inside">
+                            <li>ارفع الفيديو على يوتيوب واجعله <strong>"غير مدرج" (Unlisted)</strong> ليتم حمايته.</li>
+                            <li>انسخ الرابط، ضعه في خانة (إضافة فيديو)، وحدد الصف التابع له.</li>
+                            <li>سيظهر الفيديو تلقائياً للطلاب في مشغل المنصة الداخلي بدون إعلانات.</li>
+                        </ul>
+                    </div>
+
+                    <!-- الامتحانات -->
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <h3 class="font-black text-slate-800 mb-2"><i class="fas fa-file-signature text-amber-500 ml-1"></i> 2. إدارة الامتحانات</h3>
+                        <ul class="text-sm text-slate-600 space-y-2 list-disc list-inside">
+                            <li>قم بإنشاء امتحان جديد بوضع اسمه وتحديد الصف.</li>
+                            <li>اضغط على زر <strong>(الأسئلة)</strong> لإضافة الأسئلة وتحديد الاختيار الصحيح لكل سؤال.</li>
+                            <li><strong>مهم جداً:</strong> استخدم زر التفعيل (الأخضر) بجوار اسم الامتحان ليتمكن الطلاب من الدخول إليه، وإذا أغلقته لن يتمكن أحد من الدخول.</li>
+                        </ul>
+                    </div>
+
+                    <!-- فحص QR -->
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <h3 class="font-black text-slate-800 mb-2"><i class="fas fa-qrcode text-emerald-500 ml-1"></i> 3. نظام فحص الـ QR</h3>
+                        <ul class="text-sm text-slate-600 space-y-2 list-disc list-inside">
+                            <li>بعد أن ينهي الطالب امتحانه، يظهر له كود (باركود مربع) مشفر لا يظهر نتيجته.</li>
+                            <li>افتح هذا القسم ووجه كاميرا هاتفك للشاشة لديه، ستظهر لك النتيجة التفصيلية موثقة وآمنة.</li>
+                        </ul>
+                    </div>
+
+                    <!-- الدرجات -->
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <h3 class="font-black text-slate-800 mb-2"><i class="fas fa-poll text-blue-500 ml-1"></i> 4. درجات الطلاب</h3>
+                        <ul class="text-sm text-slate-600 space-y-2 list-disc list-inside">
+                            <li>كل طالب ينهي اختباره يتم حفظ نتيجته تلقائياً في هذا السجل.</li>
+                            <li>استخدم شريط البحث العلوي بكتابة كود الطالب لتصل لنتيجته في ثانية واحدة.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <script>
-        // ==========================================
-        // 1. إعدادات قاعدة البيانات والمفاتيح الخاصة بك
-        // ==========================================
+        // إعدادات قاعدة البيانات (SUPABASE)
         const SUPABASE_URL = "https://eqbbdnsglcyivggmtkoe.supabase.co"; 
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxYmJkbnNnbGN5aXZnZ210a29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5ODc3NTMsImV4cCI6MjA5MzU2Mzc1M30.dThJWpMWOs6weXKwm7rUleIzqAfuK_Q5oRW27Gr4nKw"; 
         const QR_SECRET_KEY = "KenzyAcademy_Secret_2026";
 
-        let html5QrCode; // متغير الكاميرا المعدل
+        let html5QrCode;
         let currentEditingQuizId = null;
 
-        // ==========================================
-        // 2. دالة الاتصال بـ Supabase (مع حل مشكلة المسح DELETE)
-        // ==========================================
         async function supabaseRequest(method, table, query = "", body = null) {
             const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
             const options = {
@@ -235,16 +282,10 @@
             const res = await fetch(url, options);
             if (!res.ok) throw new Error("Network response was not ok");
             
-            // حل مشكلة Unexpected end of JSON input
-            if (method === "DELETE" || res.status === 204) {
-                return true; 
-            }
+            if (method === "DELETE" || res.status === 204) return true; 
             return await res.json();
         }
 
-        // ==========================================
-        // 3. نظام التشغيل والتنقل
-        // ==========================================
         window.onload = () => {
             setTimeout(() => {
                 document.getElementById('loading-screen').style.opacity = '0';
@@ -262,7 +303,7 @@
         function loginAdmin() {
             const u = document.getElementById('adminUser').value;
             const p = document.getElementById('adminPass').value;
-            if(u === 'admin' && p === 'kenzy123') { // باسورد الإدارة
+            if(u === 'admin' && p === 'kenzy123') {
                 localStorage.setItem('kenzy_admin', 'true');
                 document.getElementById('login-screen').classList.add('hidden');
                 showApp();
@@ -295,7 +336,6 @@
                 if (iconBg) iconBg.classList.add("bg-indigo-100", "-translate-y-1", "text-indigo-600");
             }
 
-            // تشغيل/إيقاف الكاميرا بذكاء
             if (tabName === 'scanner') {
                 initScanner();
             } else if (html5QrCode && html5QrCode.getState() === 2) { 
@@ -309,9 +349,7 @@
             if(tabName === 'results') loadResults();
         }
 
-        // ==========================================
-        // 4. الفيديوهات
-        // ==========================================
+        // --- دوال الفيديوهات ---
         async function addVideo() {
             const title = document.getElementById('vidTitle').value;
             const cls = document.getElementById('vidClass').value;
@@ -356,9 +394,7 @@
             }
         }
 
-        // ==========================================
-        // 5. الامتحانات
-        // ==========================================
+        // --- دوال الامتحانات ---
         async function createQuiz() {
             const name = document.getElementById('newQuizName').value;
             const cls = document.getElementById('newQuizClass').value;
@@ -457,9 +493,7 @@
             } catch(e){}
         }
 
-        // ==========================================
-        // 6. الدرجات
-        // ==========================================
+        // --- دوال الدرجات ---
         let allResults = [];
         async function loadResults() {
             const tb = document.getElementById('resultsTableBody');
@@ -489,9 +523,7 @@
             renderResults(filtered);
         }
 
-        // ==========================================
-        // 7. فحص الـ QR Code (الصامت)
-        // ==========================================
+        // --- دوال فحص QR Code ---
         function initScanner() {
             document.getElementById('scanResult').classList.add('hidden');
             document.getElementById('reader').classList.remove('hidden');
@@ -502,7 +534,6 @@
 
             if (html5QrCode.getState() === 2) return; 
 
-            // فتح الكاميرا الخلفية تلقائياً
             html5QrCode.start(
                 { facingMode: "environment" }, 
                 { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },

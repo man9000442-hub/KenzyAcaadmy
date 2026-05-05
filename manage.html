@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Kenzy Academy - لوحة الإدارة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+    <!-- مكاتب التشفير وقراءة الباركود -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <style>
+         :root {
+            --primary: #4f46e5;
+            --bg-color: #f8fafc;
+        }
+        
+        body {
+            font-family: "Cairo", sans-serif;
+            background-color: var(--bg-color);
+            color: #1e293b;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+         ::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+         ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        
+        .fade-in-up {
+            animation: fadeInUp 0.4s ease forwards;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .modern-input {
+            width: 100%;
+            background-color: #f1f5f9;
+            border: 2px solid transparent;
+            border-radius: 1rem;
+            padding: 0.75rem 1rem;
+            outline: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .modern-input:focus {
+            background-color: #fff;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+        /* Navigation Styles */
+        
+        .mobile-tab.active-nav {
+            color: var(--primary);
+        }
+        
+        .mobile-tab.active-nav .icon-bg {
+            background-color: #e0e7ff;
+            transform: translateY(-4px);
+        }
+        /* Loading Screen */
+        
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            background: white;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease;
+        }
+        
+        .thin-text {
+            font-family: sans-serif;
+            font-weight: 100;
+            letter-spacing: 2px;
+            margin-top: 15px;
+            color: #333;
+        }
+        
+        .loader-circle {
+            width: 50px;
+            height: 50px;
+            border: 1px solid #ccc;
+            border-top-color: #333;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body class="pb-24">
+
+    <!-- شاشة التحميل -->
+    <div id="loading-screen">
+        <div class="loader-circle"></div>
+        <h1 class="thin-text">kenzy acadmy</h1>
+    </div>
+
+    <!-- شاشة تسجيل الدخول -->
+    <div id="login-screen" class="fixed inset-0 bg-slate-900 z-[9990] flex items-center justify-center hidden px-4">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm text-center">
+            <h2 class="text-2xl font-black mb-6 text-slate-800">Kenzy Admin</h2>
+            <input type="text" id="adminUser" placeholder="اسم المستخدم" class="modern-input mb-4 text-center" dir="ltr">
+            <input type="password" id="adminPass" placeholder="كلمة المرور" class="modern-input mb-6 text-center" dir="ltr">
+            <button onclick="loginAdmin()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200">دخول</button>
+            <p id="loginError" class="text-red-500 text-sm mt-3 hidden font-bold">بيانات غير صحيحة!</p>
+        </div>
+    </div>
+
+    <!-- الهيدر (يظهر في الموبايل والديسكتوب) -->
+    <header class="bg-white shadow-sm px-5 py-4 flex justify-center items-center sticky top-0 z-30 hidden" id="top-header">
+        <h1 class="text-xl font-black text-slate-800 tracking-tight">kenzy <span class="text-indigo-600 font-normal">acadmy</span></h1>
+    </header>
+
+    <!-- شريط التنقل السفلي (Bottom Navigation) -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-200 flex justify-around px-2 py-2 pb-safe z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] rounded-t-3xl hidden" id="bottom-nav">
+        <button onclick="switchTab('videos')" data-target="videos" class="mobile-tab tab-btn active-nav flex flex-col items-center gap-1 w-16 text-slate-400 transition-all">
+            <div class="icon-bg w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300">
+                <i class="fas fa-video text-lg"></i>
+            </div>
+            <span class="text-[10px] font-bold">الفيديوهات</span>
+        </button>
+        <button onclick="switchTab('quizzes')" data-target="quizzes" class="mobile-tab tab-btn flex flex-col items-center gap-1 w-16 text-slate-400 transition-all">
+            <div class="icon-bg w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300">
+                <i class="fas fa-file-signature text-lg"></i>
+            </div>
+            <span class="text-[10px] font-bold">الامتحانات</span>
+        </button>
+        <button onclick="switchTab('results')" data-target="results" class="mobile-tab tab-btn flex flex-col items-center gap-1 w-16 text-slate-400 transition-all">
+            <div class="icon-bg w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300">
+                <i class="fas fa-poll text-lg"></i>
+            </div>
+            <span class="text-[10px] font-bold">الدرجات</span>
+        </button>
+        <button onclick="switchTab('scanner')" data-target="scanner" class="mobile-tab tab-btn flex flex-col items-center gap-1 w-16 text-slate-400 transition-all">
+            <div class="icon-bg w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300">
+                <i class="fas fa-qrcode text-lg"></i>
+            </div>
+            <span class="text-[10px] font-bold">فحص QR</span>
+        </button>
+    </nav>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="container mx-auto p-4 max-w-lg mt-2 hidden" id="main-content">
+
+        <!-- 1. قسم الفيديوهات -->
+        <div id="videos-section" class="section-content fade-in-up">
+            <div class="glass-panel p-5 rounded-3xl mb-6">
+                <h2 class="font-black text-slate-800 mb-4 flex items-center gap-2"><i class="fas fa-plus-circle text-indigo-600"></i> إضافة فيديو جديد</h2>
+                <div class="space-y-3">
+                    <input type="text" id="vidTitle" placeholder="عنوان الفيديو..." class="modern-input">
+                    <select id="vidClass" class="modern-input">
+                        <option value="الصف الأول الثانوي">الصف الأول الثانوي</option>
+                        <option value="الصف الثاني الثانوي">الصف الثاني الثانوي</option>
+                        <option value="الصف الثالث الثانوي">الصف الثالث الثانوي</option>
+                    </select>
+                    <input type="text" id="vidUrl" placeholder="لينك اليوتيوب (Private/Unlisted)..." class="modern-input text-left" dir="ltr">
+                    <button onclick="addVideo()" id="addVidBtn" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold shadow-lg mt-2">حفظ الفيديو</button>
+                </div>
+            </div>
+
+            <h3 class="font-bold text-slate-700 mb-3 px-2">الفيديوهات المضافة:</h3>
+            <div id="videosList" class="space-y-3 pb-8">
+                <!-- سيتم جلب الفيديوهات هنا -->
+            </div>
+        </div>
+
+        <!-- 2. قسم الامتحانات -->
+        <div id="quizzes-section" class="section-content hidden fade-in-up">
+            <div class="glass-panel p-5 rounded-3xl mb-6">
+                <h2 class="font-black text-slate-800 mb-4">امتحان جديد</h2>
+                <div class="space-y-3">
+                    <input type="text" id="newQuizName" placeholder="اسم الامتحان" class="modern-input">
+                    <select id="newQuizClass" class="modern-input">
+                        <option value="الصف الأول الثانوي">الصف الأول الثانوي</option>
+                        <option value="الصف الثاني الثانوي">الصف الثاني الثانوي</option>
+                        <option value="الصف الثالث الثانوي">الصف الثالث الثانوي</option>
+                    </select>
+                    <button onclick="createQuiz()" id="createQuizBtn" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold shadow-lg">إنشاء</button>
+                </div>
+            </div>
+
+            <div id="quizListTableBody" class="space-y-3 pb-8">
+                <!-- قائمة الامتحانات ستظهر هنا -->
+            </div>
+        </div>
+
+        <!-- قسم إضافة الأسئلة (مخفي يظهر عند اختيار امتحان) -->
+        <div id="manageQuizDetailsSection" class="section-content hidden fade-in-up">
+            <div class="flex justify-between items-center mb-4 px-2">
+                <h3 class="font-black text-slate-800 text-lg" id="editingQuizName"></h3>
+                <button onclick="switchTab('quizzes')" class="text-indigo-600 font-bold text-sm bg-indigo-50 px-3 py-1 rounded-lg">عودة</button>
+            </div>
+
+            <div class="glass-panel p-5 rounded-3xl mb-6">
+                <h4 class="font-bold text-slate-700 mb-3 text-sm">إضافة سؤال جديد:</h4>
+                <div class="space-y-3">
+                    <textarea id="qText" placeholder="نص السؤال..." class="modern-input" rows="2"></textarea>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="qA" placeholder="أ)" class="modern-input text-sm">
+                        <input type="text" id="qB" placeholder="ب)" class="modern-input text-sm">
+                        <input type="text" id="qC" placeholder="ج)" class="modern-input text-sm">
+                        <input type="text" id="qD" placeholder="د)" class="modern-input text-sm">
+                    </div>
+                    <select id="qCorrect" class="modern-input text-sm">
+                        <option value="A">الإجابة: أ</option>
+                        <option value="B">الإجابة: ب</option>
+                        <option value="C">الإجابة: ج</option>
+                        <option value="D">الإجابة: د</option>
+                    </select>
+                    <button onclick="addQuestion()" id="addQBtn" class="w-full bg-emerald-500 text-white py-3 rounded-xl font-bold shadow-lg">إضافة السؤال</button>
+                </div>
+            </div>
+
+            <div id="quizQuestionsContainer" class="space-y-3 pb-8"></div>
+        </div>
+
+        <!-- 3. قسم الدرجات -->
+        <div id="results-section" class="section-content hidden fade-in-up">
+            <div class="glass-panel p-4 rounded-3xl mb-4">
+                <input type="text" id="searchResultCode" placeholder="بحث بكود الطالب..." class="modern-input text-center font-mono" onkeyup="filterResults()">
+            </div>
+
+            <div class="glass-panel rounded-3xl overflow-hidden shadow-sm">
+                <div class="overflow-x-auto no-scrollbar">
+                    <table class="min-w-full text-right text-sm whitespace-nowrap">
+                        <thead class="bg-slate-50 text-slate-500 border-b">
+                            <tr>
+                                <th class="p-3">الكود</th>
+                                <th class="p-3">الاسم</th>
+                                <th class="p-3 text-center">الدرجة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody" class="divide-y divide-slate-50"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. قسم فحص QR -->
+        <div id="scanner-section" class="section-content hidden fade-in-up text-center">
+            <div class="glass-panel p-5 rounded-3xl">
+                <h2 class="text-lg font-black text-slate-800 mb-4"><i class="fas fa-qrcode text-indigo-600"></i> فحص كود الطالب</h2>
+                <div id="reader" class="mb-4 overflow-hidden rounded-2xl border-2 border-indigo-100 bg-black w-full aspect-square object-cover"></div>
+
+                <div id="scanResult" class="hidden bg-emerald-50 border border-emerald-200 p-4 rounded-2xl mt-4">
+                    <h3 class="text-emerald-700 font-black text-lg mb-2">تم الفحص ✅</h3>
+                    <p class="font-bold text-slate-700 text-sm mb-1">الاسم: <span id="resName" class="text-indigo-600"></span></p>
+                    <p class="font-bold text-slate-700 text-sm mb-1">الكود: <span id="resCode" class="text-indigo-600 font-mono"></span></p>
+                    <p class="font-bold text-slate-700 text-sm">الدرجة: <span id="resScore" class="text-rose-600 font-black text-xl"></span></p>
+                    <button onclick="resetScanner()" class="mt-4 w-full bg-slate-800 text-white px-4 py-3 rounded-xl font-bold">فحص جديد</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // ==========================================
+        // 1. إعدادات قاعدة البيانات والتشفير
+        // ==========================================
+        const SUPABASE_URL = "https://eqbbdnsglcyivggmtkoe.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxYmJkbnNnbGN5aXZnZ210a29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5ODc3NTMsImV4cCI6MjA5MzU2Mzc1M30.dThJWpMWOs6weXKwm7rUleIzqAfuK_Q5oRW27Gr4nKw";
+        const QR_SECRET_KEY = "KenzyAcademy_Secret_2026"; // مفتاح التشفير
+
+        let html5QrcodeScanner;
+        let currentEditingQuizId = null;
+
+        // ==========================================
+        // 2. دوال مساعدة لـ Supabase
+        // ==========================================
+        async function supabaseRequest(method, table, query = "", body = null) {
+            const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`
+                }
+            };
+            if (method === "POST" || method === "PATCH") options.headers['Prefer'] = 'return=representation';
+            if (body) options.body = JSON.stringify(body);
+
+            const res = await fetch(url, options);
+            if (!res.ok) throw new Error("Network response was not ok");
+
+            // التعديل هنا: لو الطلب DELETE أو مفيش محتوى راجع، نخرج بدون ما نعمل parse للـ JSON
+            if (method === "DELETE" || res.status === 204) {
+                return true;
+            }
+
+            return await res.json();
+        }
+
+        // ==========================================
+        // 3. نظام التشغيل وتسجيل الدخول
+        // ==========================================
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.display = 'none';
+                    if (localStorage.getItem('kenzy_admin') === 'true') {
+                        showApp();
+                    } else {
+                        document.getElementById('login-screen').classList.remove('hidden');
+                    }
+                }, 500);
+            }, 1500);
+        };
+
+        function loginAdmin() {
+            const u = document.getElementById('adminUser').value;
+            const p = document.getElementById('adminPass').value;
+            if (u === 'admin' && p === 'kenzy123') {
+                localStorage.setItem('kenzy_admin', 'true');
+                document.getElementById('login-screen').classList.add('hidden');
+                showApp();
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        }
+
+        function showApp() {
+            document.getElementById('top-header').classList.remove('hidden');
+            document.getElementById('bottom-nav').classList.remove('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
+            switchTab('videos');
+        }
+
+        // ==========================================
+        // 4. التنقل بين التابات
+        // ==========================================
+        function switchTab(tabName) {
+            document.querySelectorAll(".section-content").forEach(el => el.classList.add("hidden"));
+            document.getElementById(tabName + "-section").classList.remove("hidden");
+
+            document.querySelectorAll(".tab-btn").forEach(btn => {
+                btn.classList.remove("active-nav");
+                let iconBg = btn.querySelector('.icon-bg');
+                if (iconBg) iconBg.classList.remove("bg-indigo-100", "-translate-y-1", "text-indigo-600");
+            });
+
+            const activeBtn = document.querySelector(`.tab-btn[data-target="${tabName}"]`);
+            if (activeBtn) {
+                activeBtn.classList.add("active-nav");
+                let iconBg = activeBtn.querySelector('.icon-bg');
+                if (iconBg) iconBg.classList.add("bg-indigo-100", "-translate-y-1", "text-indigo-600");
+            }
+
+            // تشغيل وظائف التابات
+            if (tabName === 'scanner') initScanner();
+            else if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear();
+                document.getElementById('reader').innerHTML = '';
+            }
+
+            if (tabName === 'videos') loadVideos();
+            if (tabName === 'quizzes') loadQuizzes();
+            if (tabName === 'results') loadResults();
+        }
+
+        // ==========================================
+        // 5. قسم الفيديوهات
+        // ==========================================
+        async function addVideo() {
+            const title = document.getElementById('vidTitle').value;
+            const cls = document.getElementById('vidClass').value;
+            const url = document.getElementById('vidUrl').value;
+            const btn = document.getElementById('addVidBtn');
+
+            if (!title || !url) return alert("أكمل البيانات");
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                await supabaseRequest('POST', 'kenzy_videos', '', {
+                    title: title,
+                    class_name: cls,
+                    youtube_url: url
+                });
+                document.getElementById('vidTitle').value = '';
+                document.getElementById('vidUrl').value = '';
+                loadVideos();
+            } catch (e) {
+                alert("خطأ في الحفظ");
+            }
+            btn.innerHTML = 'حفظ الفيديو';
+        }
+
+        async function loadVideos() {
+            const container = document.getElementById('videosList');
+            container.innerHTML = '<p class="text-center text-sm text-slate-400">جاري التحميل...</p>';
+            try {
+                const videos = await supabaseRequest('GET', 'kenzy_videos', '?order=id.desc');
+                if (!videos.length) return container.innerHTML = '<p class="text-center text-sm text-slate-400">لا يوجد فيديوهات</p>';
+
+                container.innerHTML = videos.map(v => `
+                    <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center">
+                        <div>
+                            <h4 class="font-bold text-sm text-slate-800">${v.title}</h4>
+                            <span class="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded font-bold">${v.class_name}</span>
+                        </div>
+                        <button onclick="deleteVideo(${v.id})" class="text-red-500 bg-red-50 p-2 rounded-lg"><i class="fas fa-trash text-sm"></i></button>
+                    </div>
+                `).join('');
+            } catch (e) {}
+        }
+
+        async function deleteVideo(id) {
+            if (confirm("حذف الفيديو؟")) {
+                await supabaseRequest('DELETE', 'kenzy_videos', `?id=eq.${id}`);
+                loadVideos();
+            }
+        }
+
+        // ==========================================
+        // 6. قسم الامتحانات
+        // ==========================================
+        async function createQuiz() {
+            const name = document.getElementById('newQuizName').value;
+            const cls = document.getElementById('newQuizClass').value;
+            const btn = document.getElementById('createQuizBtn');
+            if (!name) return;
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            try {
+                await supabaseRequest('POST', 'kenzy_quizzes', '', {
+                    quiz_name: name,
+                    class_name: cls
+                });
+                document.getElementById('newQuizName').value = '';
+                loadQuizzes();
+            } catch (e) {}
+            btn.innerHTML = 'إنشاء';
+        }
+
+        async function loadQuizzes() {
+            const container = document.getElementById('quizListTableBody');
+            container.innerHTML = '<p class="text-center text-sm text-slate-400">جاري التحميل...</p>';
+            try {
+                const quizzes = await supabaseRequest('GET', 'kenzy_quizzes', '?order=id.desc');
+                container.innerHTML = quizzes.map(q => `
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h4 class="font-bold text-slate-800">${q.quiz_name}</h4>
+                                <span class="text-[10px] text-slate-500">${q.class_name}</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" class="sr-only peer" ${q.is_active ? 'checked' : ''} onchange="toggleQuiz(${q.id}, this.checked)">
+                                <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                            </label>
+                        </div>
+                        <div class="flex gap-2 mt-3">
+                            <button onclick="openQuizDetails(${q.id}, '${q.quiz_name}')" class="flex-1 bg-indigo-50 text-indigo-600 py-1.5 rounded-lg text-sm font-bold">الأسئلة</button>
+                            <button onclick="deleteQuiz(${q.id})" class="bg-red-50 text-red-500 px-3 py-1.5 rounded-lg text-sm"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {}
+        }
+
+        async function toggleQuiz(id, status) {
+            await supabaseRequest('PATCH', 'kenzy_quizzes', `?id=eq.${id}`, {
+                is_active: status
+            });
+        }
+
+        async function deleteQuiz(id) {
+            if (confirm("حذف الامتحان بالأسئلة؟")) {
+                await supabaseRequest('DELETE', 'kenzy_quizzes', `?id=eq.${id}`);
+                loadQuizzes();
+            }
+        }
+
+        function openQuizDetails(id, name) {
+            currentEditingQuizId = id;
+            document.getElementById('editingQuizName').innerText = name;
+            document.querySelectorAll(".section-content").forEach(el => el.classList.add("hidden"));
+            document.getElementById("manageQuizDetailsSection").classList.remove("hidden");
+            loadQuestions();
+        }
+
+        async function addQuestion() {
+            const data = {
+                quiz_id: currentEditingQuizId,
+                question_text: document.getElementById('qText').value,
+                choice_a: document.getElementById('qA').value,
+                choice_b: document.getElementById('qB').value,
+                choice_c: document.getElementById('qC').value,
+                choice_d: document.getElementById('qD').value,
+                correct_answer: document.getElementById('qCorrect').value
+            };
+
+            if (!data.question_text || !data.choice_a) return alert("أكمل البيانات");
+            const btn = document.getElementById('addQBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            try {
+                await supabaseRequest('POST', 'kenzy_questions', '', data);
+                document.getElementById('qText').value = '';
+                document.getElementById('qA').value = '';
+                document.getElementById('qB').value = '';
+                document.getElementById('qC').value = '';
+                document.getElementById('qD').value = '';
+                loadQuestions();
+            } catch (e) {}
+            btn.innerHTML = 'إضافة السؤال';
+        }
+
+        async function loadQuestions() {
+            const container = document.getElementById('quizQuestionsContainer');
+            container.innerHTML = '<p class="text-center text-sm text-slate-400">تحميل...</p>';
+            try {
+                const qs = await supabaseRequest('GET', 'kenzy_questions', `?quiz_id=eq.${currentEditingQuizId}`);
+                container.innerHTML = qs.map((q, i) => `
+                    <div class="bg-white p-3 rounded-2xl border border-slate-100 flex justify-between items-center text-sm">
+                        <span class="font-bold text-slate-700 truncate w-3/4">${i+1}. ${q.question_text}</span>
+                        <button onclick="deleteQuestion(${q.id})" class="text-red-500"><i class="fas fa-trash"></i></button>
+                    </div>
+                `).join('');
+            } catch (e) {}
+        }
+
+        async function deleteQuestion(id) {
+            if (confirm("حذف السؤال؟")) {
+                await supabaseRequest('DELETE', 'kenzy_questions', `?id=eq.${id}`);
+                loadQuestions();
+            }
+        }
+
+        // ==========================================
+        // 7. قسم الدرجات
+        // ==========================================
+        let allResults = [];
+        async function loadResults() {
+            const tb = document.getElementById('resultsTableBody');
+            tb.innerHTML = '<tr><td colspan="3" class="text-center p-4 text-sm text-slate-400">جاري التحميل...</td></tr>';
+            try {
+                allResults = await supabaseRequest('GET', 'kenzy_results', '?order=id.desc');
+                renderResults(allResults);
+            } catch (e) {}
+        }
+
+        function renderResults(data) {
+            const tb = document.getElementById('resultsTableBody');
+            if (!data.length) return tb.innerHTML = '<tr><td colspan="3" class="text-center p-4 text-sm text-slate-400">لا توجد نتائج</td></tr>';
+
+            tb.innerHTML = data.map(r => `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-3 font-mono text-rose-500 text-xs font-bold">${r.student_code}</td>
+                    <td class="p-3 font-bold text-slate-800 text-xs">${r.student_name}</td>
+                    <td class="p-3 text-center"><span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded-lg font-black text-xs">${r.score}/${r.total_questions}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function filterResults() {
+            const term = document.getElementById('searchResultCode').value.toLowerCase();
+            const filtered = allResults.filter(r => r.student_code.toLowerCase().includes(term));
+            renderResults(filtered);
+        }
+
+        // ==========================================
+        // 8. فحص الـ QR Code
+        // ==========================================
+        function initScanner() {
+            document.getElementById('scanResult').classList.add('hidden');
+            document.getElementById('reader').classList.remove('hidden');
+
+            // تهيئة الكاميرا لتناسب الموبايل
+            html5QrcodeScanner = new Html5QrcodeScanner("reader", {
+                fps: 10,
+                qrbox: {
+                    width: 250,
+                    height: 250
+                },
+                aspectRatio: 1.0,
+                supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+            }, false);
+
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            try {
+                // فك التشفير
+                const bytes = CryptoJS.AES.decrypt(decodedText, QR_SECRET_KEY);
+                const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+
+                // إيقاف الكاميرا وعرض النتيجة
+                html5QrcodeScanner.clear();
+                document.getElementById('reader').classList.add('hidden');
+                document.getElementById('scanResult').classList.remove('hidden');
+
+                document.getElementById('resName').innerText = decryptedData.name;
+                document.getElementById('resCode').innerText = decryptedData.code;
+                document.getElementById('resScore').innerText = decryptedData.score;
+
+            } catch (error) {
+                alert("رمز QR غير صالح أو لا يخص المنصة!");
+            }
+        }
+
+        function onScanFailure(error) { /* صامت لتجنب الإزعاج وقت البحث عن الباركود */ }
+
+        function resetScanner() {
+            initScanner();
+        }
+    </script>
+</body>
+
+</html>

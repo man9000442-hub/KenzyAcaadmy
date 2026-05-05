@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kenzy Academy | بوابة الطالب</title>
+
+    <!-- مكتبات Tailwind, FontAwesome, وخطوط Google -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+    <!-- مكتبات التشفير والـ QR Code -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+         :root {
+            --black: #0a0a0a;
+            --white: #ffffff;
+            --gray-light: #f4f4f5;
+        }
+        
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--gray-light);
+            color: var(--black);
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+         ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+         ::-webkit-scrollbar-track {
+            background: var(--white);
+        }
+        
+         ::-webkit-scrollbar-thumb {
+            background: var(--black);
+            border-radius: 10px;
+        }
+        /* شاشة التحميل */
+        
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--white);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .thin-text {
+            font-family: sans-serif;
+            font-weight: 100;
+            letter-spacing: 3px;
+            margin-top: 15px;
+            color: var(--black);
+            text-transform: uppercase;
+        }
+        
+        .loader-circle {
+            width: 50px;
+            height: 50px;
+            border: 1px solid #e5e5e5;
+            border-top-color: var(--black);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        /* الأنيميشن */
+        
+        .reveal-up {
+            opacity: 0;
+            transform: translateY(40px);
+            animation: revealUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        .delay-100 {
+            animation-delay: 0.1s;
+        }
+        
+        .delay-200 {
+            animation-delay: 0.2s;
+        }
+        
+        .delay-300 {
+            animation-delay: 0.3s;
+        }
+        
+        @keyframes revealUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        /* التصميم النقي B&W Neo-Brutalism */
+        
+        .card-neo {
+            background: var(--white);
+            border: 2px solid var(--black);
+            box-shadow: 8px 8px 0px 0px var(--black);
+            transition: all 0.3s ease;
+        }
+        
+        .card-neo-hover:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 12px 12px 0px 0px var(--black);
+        }
+        
+        .modern-input {
+            width: 100%;
+            background-color: var(--white);
+            border: 2px solid #e5e5e5;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .modern-input:focus {
+            border-color: var(--black);
+            box-shadow: 4px 4px 0px 0px var(--black);
+            transform: translate(-2px, -2px);
+        }
+        
+        .btn-sweep {
+            position: relative;
+            background: transparent;
+            color: var(--black);
+            border: 2px solid var(--black);
+            overflow: hidden;
+            z-index: 1;
+            transition: color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+        }
+        
+        .btn-sweep::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--black);
+            z-index: -1;
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .btn-sweep:hover::before {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+        
+        .btn-sweep:hover {
+            color: var(--white);
+        }
+        
+        .radio-label {
+            display: flex;
+            align-items: center;
+            padding: 1.25rem;
+            border: 2px solid #e5e5e5;
+            background: var(--white);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .radio-label:hover {
+            border-color: var(--black);
+        }
+        
+        .selected-answer {
+            border-color: var(--black) !important;
+            background-color: var(--black) !important;
+            color: var(--white) !important;
+            box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 0.2);
+            transform: translate(-2px, -2px);
+        }
+        
+        #progress-container {
+            width: 100%;
+            height: 4px;
+            background: #e5e5e5;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 50;
+        }
+        
+        #progress-bar {
+            height: 100%;
+            background: var(--black);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+        
+        #qrcode img {
+            margin: 0 auto;
+            border: 4px solid var(--black);
+            padding: 10px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="pb-16 pt-6">
+
+    <div id="progress-container" class="hidden">
+        <div id="progress-bar"></div>
+    </div>
+
+    <div id="loading-screen">
+        <div class="loader-circle"></div>
+        <h1 class="thin-text">kenzy acadmy</h1>
+    </div>
+
+    <div class="container mx-auto px-4 max-w-3xl">
+
+        <header class="text-center mb-10 reveal-up">
+            <h1 class="text-4xl md:text-5xl font-black tracking-tighter text-black uppercase">Kenzy <span class="font-light">Academy</span></h1>
+            <div class="w-16 h-1 bg-black mx-auto mt-4 mb-2"></div>
+            <p id="page-subtitle" class="font-bold tracking-widest text-gray-500 uppercase text-sm">بوابة الطالب الرئيسية</p>
+        </header>
+
+        <!-- 1. الرئيسية -->
+        <main id="home-section" class="reveal-up delay-100">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <button onclick="goTo('quiz-login')" class="card-neo card-neo-hover p-10 text-center flex flex-col items-center justify-center bg-black text-white cursor-pointer group">
+                    <i class="fa-solid fa-file-signature text-5xl mb-4 group-hover:scale-110 transition-transform"></i>
+                    <h2 class="text-2xl font-black tracking-wider uppercase">منصة الاختبارات</h2>
+                    <p class="text-sm text-gray-400 mt-2">امتحن واعرف مستواك</p>
+                </button>
+
+                <button onclick="goTo('lectures')" class="card-neo card-neo-hover p-10 text-center flex flex-col items-center justify-center cursor-pointer group hover:bg-gray-50">
+                    <i class="fa-solid fa-video text-5xl mb-4 text-black group-hover:scale-110 transition-transform"></i>
+                    <h2 class="text-2xl font-black tracking-wider uppercase text-black">مكتبة المحاضرات</h2>
+                    <p class="text-sm text-gray-500 mt-2">شاهد الفيديوهات والشروحات</p>
+                </button>
+
+                <button onclick="openSupport()" class="card-neo card-neo-hover p-6 text-center flex items-center justify-center gap-4 cursor-pointer md:col-span-2 hover:bg-gray-50">
+                    <i class="fa-brands fa-whatsapp text-3xl text-black"></i>
+                    <h2 class="text-xl font-black tracking-wider uppercase text-black">تواصل مع الدعم الفني</h2>
+                </button>
+            </div>
+        </main>
+
+        <!-- 2. المحاضرات -->
+        <section id="lectures-section" class="hidden">
+            <button onclick="goTo('home')" class="mb-6 font-bold flex items-center gap-2 hover:underline text-gray-600">
+                <i class="fa-solid fa-arrow-right"></i> العودة للرئيسية
+            </button>
+
+            <div class="card-neo p-6 md:p-8 reveal-up">
+                <div class="flex justify-between items-center mb-6 border-b-2 border-gray-100 pb-4">
+                    <h2 class="text-2xl font-black uppercase tracking-wide">المحاضرات المتاحة</h2>
+                    <i class="fa-solid fa-video text-gray-400 text-2xl"></i>
+                </div>
+
+                <div class="mb-6">
+                    <select id="video-class-filter" class="modern-input py-3" onchange="loadStudentVideos()">
+                        <option value="all">عرض كل الصفوف</option>
+                        <option value="الصف الأول الثانوي">الصف الأول الثانوي</option>
+                        <option value="الصف الثاني الثانوي">الصف الثاني الثانوي</option>
+                        <option value="الصف الثالث الثانوي">الصف الثالث الثانوي</option>
+                    </select>
+                </div>
+
+                <div id="videos-container" class="space-y-4"></div>
+            </div>
+        </section>
+
+        <!-- 3. تسجيل دخول الاختبار -->
+        <section id="quiz-login-section" class="hidden">
+            <button onclick="goTo('home')" class="mb-6 font-bold flex items-center gap-2 hover:underline text-gray-600">
+                <i class="fa-solid fa-arrow-right"></i> العودة للرئيسية
+            </button>
+
+            <div class="card-neo p-8 md:p-12 reveal-up">
+                <h2 class="text-2xl font-black text-center mb-8 uppercase tracking-wide">بيانات الطالب</h2>
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-bold uppercase tracking-wider mb-2 text-gray-500">اسم الطالب</label>
+                        <input id="inputName" type="text" placeholder="الاسم ثلاثي" class="modern-input">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold uppercase tracking-wider mb-2 text-gray-500">كود الطالب <span class="text-xs text-red-500">(إنجليزي وأرقام فقط)</span></label>
+                        <!-- oninput بتقوم بتصفية الكود لايف وإزالة المسافات والعربي -->
+                        <input id="inputCode" type="text" placeholder="مثال: K1234" class="modern-input text-center font-mono uppercase tracking-widest" dir="ltr" oninput="sanitizeCode(this)">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-bold uppercase tracking-wider mb-2 text-gray-500">رقم الهاتف</label>
+                            <input id="inputPhone" type="tel" placeholder="01..." class="modern-input text-center" dir="ltr">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold uppercase tracking-wider mb-2 text-gray-500">الصف الدراسي</label>
+                            <select id="inputClass" class="modern-input">
+                                <option value="" disabled selected>اختر الصف...</option>
+                                <option value="الصف الأول الثانوي">الصف الأول الثانوي</option>
+                                <option value="الصف الثاني الثانوي">الصف الثاني الثانوي</option>
+                                <option value="الصف الثالث الثانوي">الصف الثالث الثانوي</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold uppercase tracking-wider mb-2 text-gray-500">أيام الحضور (المجموعة)</label>
+                        <select id="inputGroup" class="modern-input">
+                            <option value="" disabled selected>اختر يوم المجموعة...</option>
+                            <option value="السبت">السبت</option>
+                            <option value="الأحد">الأحد</option>
+                            <option value="الإثنين">الإثنين</option>
+                            <option value="الثلاثاء">الثلاثاء</option>
+                            <option value="الأربعاء">الأربعاء</option>
+                            <option value="الخميس">الخميس</option>
+                            <option value="الجمعة">الجمعة</option>
+                        </select>
+                    </div>
+
+                    <button id="loginBtn" onclick="handleLogin()" class="w-full btn-sweep py-4 text-lg font-black mt-4 flex items-center justify-center gap-3">
+                        <span>فحص وبدء الاختبار</span>
+                        <i class="fa-solid fa-bolt"></i>
+                    </button>
+                    <p id="loginError" class="hidden text-white bg-black p-4 font-bold text-center text-sm border-l-4 border-red-500"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. قسم الامتحان والأسئلة -->
+        <section id="quiz-section" class="hidden">
+            <div class="card-neo p-5 mb-8 flex flex-col md:flex-row justify-between items-center gap-4 reveal-up">
+                <div class="text-center md:text-right">
+                    <p class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1" id="displayGroupInfo"></p>
+                    <p id="displayStudentName" class="text-xl font-black"></p>
+                </div>
+                <div id="displayClassName" class="border-2 border-black px-6 py-2 font-bold text-sm uppercase tracking-wide"></div>
+            </div>
+
+            <div id="quizContainer">
+                <form id="quizForm" class="space-y-8"></form>
+                <button id="submitBtn" onclick="submitQuiz()" class="w-full btn-sweep py-5 text-xl font-black mt-12 flex items-center justify-center gap-3 reveal-up delay-300">
+                    <span>اعتماد الإجابات وإنهاء</span>
+                    <i class="fa-solid fa-check"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- 5. النتيجة المشفرة (QR Code) -->
+        <section id="finalResultContainer" class="hidden card-neo p-8 md:p-12 text-center reveal-up">
+            <div class="w-20 h-20 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fa-solid fa-check text-4xl"></i>
+            </div>
+            <h2 class="text-3xl font-black mb-4 uppercase">تم استلام إجاباتك</h2>
+            <p class="text-gray-500 font-bold mb-8">احتفظ بهذا الرمز للتحقق من نتيجتك التفصيلية في السنتر.</p>
+
+            <div class="bg-gray-50 border-2 border-gray-200 p-6 inline-block mx-auto">
+                <div id="qrcode" class="flex justify-center"></div>
+            </div>
+
+            <div class="mt-8 pt-8 border-t-2 border-gray-100 flex flex-col items-center gap-2">
+                <p class="font-bold text-sm text-gray-500 uppercase tracking-widest">الكود التعريفي</p>
+                <p id="resCode" class="text-2xl font-black font-mono"></p>
+            </div>
+
+            <button onclick="location.reload()" class="mt-8 font-bold underline text-gray-500 hover:text-black">العودة للرئيسية</button>
+        </section>
+
+    </div>
+
+    <!-- نافذة دعم فني (Modal) -->
+    <div id="supportModal" class="fixed inset-0 bg-white/90 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="card-neo w-full max-w-sm p-8 relative">
+            <button onclick="closeSupport()" class="absolute top-4 left-4 text-gray-400 hover:text-black text-2xl"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl font-black mb-6 text-center uppercase border-b-2 border-gray-100 pb-4">تواصل معنا</h2>
+            <a href="https://wa.me/201000000000" target="_blank" class="block btn-sweep py-4 text-center font-bold text-lg mb-3">
+                <i class="fa-brands fa-whatsapp ml-2"></i> رسالة واتساب
+            </a>
+        </div>
+    </div>
+
+    <!-- نافذة عرض الفيديو (Cinematic Player) -->
+    <div id="videoModal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-[100] hidden flex-col items-center justify-center p-4 md:p-10 opacity-0 transition-opacity duration-300">
+        <button onclick="closeVideoModal()" class="absolute top-6 right-6 text-white hover:text-red-500 transition text-4xl z-50">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="w-full max-w-5xl aspect-video bg-black rounded-xl overflow-hidden border-2 border-gray-700 shadow-[0_0_40px_rgba(255,255,255,0.1)] relative">
+            <!-- مشغل اليوتيوب -->
+            <iframe id="youtubePlayer" class="absolute top-0 left-0 w-full h-full" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        </div>
+        <h3 id="videoModalTitle" class="text-white mt-6 text-2xl font-black tracking-wide text-center uppercase"></h3>
+    </div>
+
+    <script>
+        // ==========================================
+        // إعدادات قاعدة البيانات (SUPABASE)
+        // ==========================================
+        const SECRET_KEY = "KenzyAcademy_Secret_2026";
+        const SUPABASE_URL = "https://eqbbdnsglcyivggmtkoe.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxYmJkbnNnbGN5aXZnZ210a29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5ODc3NTMsImV4cCI6MjA5MzU2Mzc1M30.dThJWpMWOs6weXKwm7rUleIzqAfuK_Q5oRW27Gr4nKw";
+
+        let questions = [];
+        let currentQuizId = null;
+        let student = {
+            name: "",
+            code: "",
+            phone: "",
+            className: "",
+            groupName: "",
+            score: 0
+        };
+
+        // دالة الاتصال بـ Supabase
+        async function supabaseRequest(method, table, query = "", body = null) {
+            const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                }
+            };
+            if (method === "POST" || method === "PATCH") options.headers['Prefer'] = 'return=representation';
+            if (body) options.body = JSON.stringify(body);
+
+            const res = await fetch(url, options);
+            if (!res.ok) throw new Error("Request failed");
+            if (method === "DELETE" || res.status === 204) return true;
+            return await res.json();
+        }
+
+        // ==========================================
+        // وظائف الواجهة والتنقل
+        // ==========================================
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.display = 'none';
+                }, 600);
+            }, 1000);
+        };
+
+        function goTo(section) {
+            const sections = ['home-section', 'lectures-section', 'quiz-login-section', 'quiz-section', 'finalResultContainer'];
+            sections.forEach(s => document.getElementById(s).classList.add('hidden'));
+
+            if (section === 'home') {
+                document.getElementById('home-section').classList.remove('hidden');
+                document.getElementById('page-subtitle').textContent = "بوابة الطالب الرئيسية";
+            } else if (section === 'lectures') {
+                document.getElementById('lectures-section').classList.remove('hidden');
+                document.getElementById('page-subtitle').textContent = "مكتبة المحاضرات";
+                loadStudentVideos();
+            } else if (section === 'quiz-login') {
+                document.getElementById('quiz-login-section').classList.remove('hidden');
+                document.getElementById('page-subtitle').textContent = "بوابة الاختبارات";
+            }
+        }
+
+        function openSupport() {
+            const modal = document.getElementById('supportModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+            }, 10);
+        }
+
+        function closeSupport() {
+            const modal = document.getElementById('supportModal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // ==========================================
+        // قسم المحاضرات (يجلب من الداتا بيز)
+        // ==========================================
+        async function loadStudentVideos() {
+            const container = document.getElementById('videos-container');
+            const filter = document.getElementById('video-class-filter').value;
+            container.innerHTML = '<p class="text-center text-gray-400 font-bold"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري تحميل الفيديوهات...</p>';
+
+            try {
+                let query = '?order=id.desc';
+                if (filter !== 'all') query += `&class_name=eq.${encodeURIComponent(filter)}`;
+
+                const videos = await supabaseRequest('GET', 'kenzy_videos', query);
+
+                if (videos.length === 0) {
+                    container.innerHTML = '<div class="p-6 border-2 border-dashed border-gray-300 text-center font-bold text-gray-400">لا توجد محاضرات متاحة لهذا الصف حالياً.</div>';
+                    return;
+                }
+
+                container.innerHTML = videos.map((v, i) => `
+                    <div class="p-5 border-2 border-black hover:bg-gray-50 transition flex flex-col md:flex-row justify-between items-center gap-4 reveal-up" style="animation-delay: ${i * 0.1}s">
+                        <div class="text-center md:text-right">
+                            <h3 class="font-black text-lg">${v.title}</h3>
+                            <span class="text-xs font-bold bg-black text-white px-2 py-1 uppercase mt-1 inline-block">${v.class_name}</span>
+                        </div>
+                        <button onclick="openVideoModal('${v.youtube_url}', '${v.title}')" class="btn-sweep px-6 py-2 font-bold text-sm flex items-center justify-center gap-2 whitespace-nowrap w-full md:w-auto">
+                            <i class="fa-solid fa-play"></i> تشغيل المحاضرة
+                        </button>
+                    </div>
+                `).join('');
+
+            } catch (e) {
+                container.innerHTML = '<p class="text-red-500 font-bold text-center">حدث خطأ أثناء الاتصال بقاعدة البيانات.</p>';
+            }
+        }
+
+        // ==========================================
+        // قسم الاختبارات والتحقق
+        // ==========================================
+
+        // تصفية الكود لايف (مسح المسافات والعربي)
+        function sanitizeCode(inputElement) {
+            let val = inputElement.value;
+            // إزالة أي مسافات
+            val = val.replace(/\s+/g, '');
+            // الاحتفاظ فقط بالحروف الإنجليزية (كابيتال وسمول) والأرقام والداش (-)
+            val = val.replace(/[^a-zA-Z0-9-]/g, '');
+            // تحويل الحروف لكابيتال (اختياري عشان الشكل)
+            inputElement.value = val.toUpperCase();
+        }
+
+        async function handleLogin() {
+            const name = document.getElementById("inputName").value.trim();
+            const code = document.getElementById("inputCode").value.trim();
+            const phone = document.getElementById("inputPhone").value.trim();
+            const cls = document.getElementById("inputClass").value;
+            const grp = document.getElementById("inputGroup").value;
+
+            const btn = document.getElementById("loginBtn");
+            const err = document.getElementById("loginError");
+
+            if (!name || !code || !phone || !cls || !grp) {
+                err.textContent = "يرجى استكمال جميع البيانات قبل الدخول.";
+                err.classList.remove("hidden");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري فحص البيانات...';
+            err.classList.add("hidden");
+
+            try {
+                student = {
+                    name,
+                    code,
+                    phone,
+                    className: cls,
+                    groupName: grp
+                };
+
+                // 1. فحص هل يوجد امتحان مفعل لهذا الصف
+                const activeQuiz = await supabaseRequest('GET', 'kenzy_quizzes', `?class_name=eq.${encodeURIComponent(cls)}&is_active=eq.true&limit=1`);
+
+                if (!activeQuiz.length) {
+                    throw new Error("لا يوجد امتحان متاح لصفك في الوقت الحالي.");
+                }
+                currentQuizId = activeQuiz[0].id;
+
+                // 2. فحص هل الطالب امتحن الاختبار ده قبل كده
+                const existingResult = await supabaseRequest('GET', 'kenzy_results', `?student_code=eq.${code}&quiz_id=eq.${currentQuizId}&limit=1`);
+
+                if (existingResult.length > 0) {
+                    throw new Error("لقد قمت بأداء هذا الاختبار مسبقاً! غير مسموح بالتكرار.");
+                }
+
+                // 3. جلب الأسئلة
+                const qsData = await supabaseRequest('GET', 'kenzy_questions', `?quiz_id=eq.${currentQuizId}`);
+                if (!qsData.length) throw new Error("الامتحان لا يحتوي على أسئلة بعد.");
+
+                questions = qsData.map(q => ({
+                    id: q.id,
+                    text: q.question_text,
+                    choices: [q.choice_a, q.choice_b, q.choice_c, q.choice_d],
+                    correct: q.correct_answer // بيحتوي على A, B, C, D
+                }));
+
+                // الدخول للامتحان
+                document.getElementById('quiz-login-section').classList.add('hidden');
+                displayExam();
+
+            } catch (e) {
+                err.textContent = e.message || "حدث خطأ في الاتصال بقاعدة البيانات.";
+                err.classList.remove("hidden");
+                btn.disabled = false;
+                btn.innerHTML = '<span>فحص وبدء الاختبار</span> <i class="fa-solid fa-bolt"></i>';
+            }
+        }
+
+        function displayExam() {
+            document.getElementById("progress-container").classList.remove("hidden");
+            document.getElementById("quiz-section").classList.remove("hidden");
+
+            document.getElementById("displayStudentName").textContent = student.name;
+            document.getElementById("displayGroupInfo").textContent = `مجموعة: ${student.groupName}`;
+            document.getElementById("displayClassName").textContent = student.className;
+
+            const form = document.getElementById("quizForm");
+
+            // خلط الاختيارات إذا أردت (هنا عرض مباشر)
+            form.innerHTML = questions.map((q, i) => `
+                <div class="card-neo p-6 md:p-8 reveal-up" style="animation-delay: ${i * 0.1}s">
+                    <div class="flex gap-4 mb-6">
+                        <span class="text-4xl font-black text-gray-200">0${i+1}</span>
+                        <p class="font-bold text-xl pt-2">${q.text}</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 choices-area">
+                        ${q.choices.map((c, index) => {
+                            const choiceLetter = ["A", "B", "C", "D"][index];
+                            return `
+                            <label class="radio-label">
+                                <input type="radio" name="q${q.id}" value="${choiceLetter}" class="hidden" onchange="updateProgress()">
+                                <div class="w-5 h-5 border-2 border-black rounded-full ml-3 flex items-center justify-center indicator transition-all"></div>
+                                <span class="font-bold">${c}</span>
+                            </label>
+                            `;
+                        }).join("")}
+                    </div>
+                </div>
+            `).join("");
+
+            form.querySelectorAll('input[type="radio"]').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const parent = e.target.closest('.choices-area');
+                    parent.querySelectorAll('.radio-label').forEach(l => {
+                        l.classList.remove('selected-answer');
+                        l.querySelector('.indicator').classList.remove('bg-white');
+                    });
+                    const selectedLabel = e.target.closest('.radio-label');
+                    selectedLabel.classList.add('selected-answer');
+                    selectedLabel.querySelector('.indicator').classList.add('bg-white');
+                });
+            });
+        }
+
+        function updateProgress() {
+            const answered = document.querySelectorAll('input[type="radio"]:checked').length;
+            const percentage = (answered / questions.length) * 100;
+            document.getElementById("progress-bar").style.width = percentage + "%";
+        }
+
+        async function submitQuiz() {
+            const inputs = document.querySelectorAll('input[type="radio"]:checked');
+            if (inputs.length < questions.length) {
+                alert("يرجى الإجابة على جميع الأسئلة.");
+                return;
+            }
+
+            if (!confirm("تأكيد إنهاء الاختبار؟ لا يمكن التعديل لاحقاً.")) return;
+
+            const btn = document.getElementById("submitBtn");
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري حفظ وإرسال النتيجة...';
+
+            let score = 0;
+            questions.forEach(q => {
+                const picked = document.querySelector(`input[name="q${q.id}"]:checked`);
+                // q.correct بتحتوي على الحرف الصحيح (A, B, C, D) واللي إحنا حطيناه كـ value في الـ input
+                if (picked && picked.value === q.correct) score++;
+            });
+
+            try {
+                // إرسال النتيجة لقاعدة البيانات (Supabase)
+                await supabaseRequest('POST', 'kenzy_results', '', {
+                    student_name: student.name,
+                    student_code: student.code,
+                    class_name: student.className,
+                    quiz_id: currentQuizId,
+                    score: score,
+                    total_questions: questions.length
+                });
+
+                student.score = `${score}/${questions.length}`;
+
+                // تشفير النتيجة وعرض الـ QR Code
+                const studentDataToEncrypt = { name: student.name, code: student.code, score: student.score };
+                const encryptedText = CryptoJS.AES.encrypt(JSON.stringify(studentDataToEncrypt), SECRET_KEY).toString();
+
+                document.getElementById("progress-container").classList.add("hidden");
+                document.getElementById("quiz-section").classList.add("hidden");
+                document.getElementById("finalResultContainer").classList.remove("hidden");
+                document.getElementById("resCode").textContent = student.code;
+
+                document.getElementById("qrcode").innerHTML = ""; 
+                new QRCode(document.getElementById("qrcode"), {
+                    text: encryptedText, width: 220, height: 220, colorDark : "#000", colorLight : "#fff", correctLevel : QRCode.CorrectLevel.H
+                });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            } catch (error) {
+                alert("حدث خطأ أثناء حفظ النتيجة، حاول مرة أخرى.");
+                btn.disabled = false;
+                btn.innerHTML = '<span>اعتماد الإجابات وإنهاء</span> <i class="fa-solid fa-check"></i>';
+            }
+        }
+        // ==========================================
+        // نظام تشغيل الفيديوهات المدمج (Embed Player)
+        // ==========================================
+        function extractYouTubeID(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        function openVideoModal(url, title) {
+            const videoId = extractYouTubeID(url);
+            if (!videoId) {
+                alert("رابط الفيديو غير صالح.");
+                return;
+            }
+            
+            // إضافة بارامترات لإخفاء اللوجو والفيديوهات المقترحة وتشغيل تلقائي
+            const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&showinfo=0`;
+            
+            document.getElementById('youtubePlayer').src = embedUrl;
+            document.getElementById('videoModalTitle').textContent = title;
+            
+            const modal = document.getElementById('videoModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); }, 10);
+        }
+
+        function closeVideoModal() {
+            const modal = document.getElementById('videoModal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => { 
+                modal.classList.add('hidden'); 
+                // تفريغ الرابط لإيقاف الصوت والفيديو تماماً عند الإغلاق
+                document.getElementById('youtubePlayer').src = ""; 
+            }, 300);
+        }
+    </script>
+</body>
+
+</html>

@@ -421,48 +421,47 @@
 
     <!-- نافذة عرض الفيديو (Cinematic Player) -->
     <div id="videoModal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-[100] hidden flex-col items-center justify-center p-2 md:p-10 opacity-0 transition-opacity duration-300">
-        <button onclick="closeVideoModal()" class="absolute top-4 right-4 md:top-6 md:right-6 text-white hover:text-red-500 transition text-3xl md:text-4xl z-50">
+        <button onclick="closeVideoModal()" class="absolute top-4 right-4 md:top-6 md:right-6 text-white hover:text-red-500 transition text-3xl md:text-4xl z-[110]">
             <i class="fa-solid fa-xmark"></i>
         </button>
         
         <div id="videoPlayerContainer" class="w-full max-w-5xl bg-black rounded-xl overflow-hidden border-2 border-gray-700 shadow-[0_0_40px_rgba(255,255,255,0.1)] relative flex flex-col">
             
-            <div class="relative w-full aspect-video">
+            <div class="relative w-full aspect-video bg-black">
                 <div class="absolute inset-0 z-10 cursor-pointer" onclick="togglePlayPause()"></div>
                 <div id="youtubePlayer" class="absolute top-0 left-0 w-full h-full pointer-events-none"></div>
             </div>
 
-            <div class="bg-slate-900 text-white p-3 flex items-center gap-3 z-20 relative select-none flex-wrap md:flex-nowrap">
+            <div class="bg-slate-900 text-white p-3 flex items-center gap-4 z-20 relative select-none flex-wrap md:flex-nowrap border-t border-gray-800">
                 
-                <button onclick="skipVideo(-10)" class="text-lg hover:text-cyan-400 transition w-8">
+                <button onclick="skipVideo(-10)" class="text-white hover:text-cyan-400 transition text-xl w-10 h-10 flex items-center justify-center">
                     <i class="fa-solid fa-backward-rotate-10"></i>
                 </button>
 
-                <button onclick="togglePlayPause()" id="playPauseBtn" class="text-2xl hover:text-cyan-400 transition w-8 text-center">
+                <button onclick="togglePlayPause()" id="playPauseBtn" class="text-white hover:text-cyan-400 transition text-2xl w-10 h-10 flex items-center justify-center">
                     <i class="fa-solid fa-play"></i>
                 </button>
 
-                <button onclick="skipVideo(10)" class="text-lg hover:text-cyan-400 transition w-8">
+                <button onclick="skipVideo(10)" class="text-white hover:text-cyan-400 transition text-xl w-10 h-10 flex items-center justify-center">
                     <i class="fa-solid fa-forward-rotate-10"></i>
                 </button>
                 
-                <div class="text-xs md:text-sm font-mono text-center w-12" id="timeDisplay">0:00</div>
+                <div class="text-xs md:text-sm font-mono text-white w-14 text-center" id="timeDisplay">0:00</div>
                 
-                <input type="range" id="progressBar" class="flex-1 accent-cyan-500 cursor-pointer h-1.5 md:h-2 bg-slate-700 rounded-lg appearance-none" min="0" max="100" value="0" step="0.1" oninput="seekVideoDrag(this.value)" onchange="seekVideoDrop(this.value)">
+                <input type="range" id="progressBar" class="flex-1 accent-cyan-500 cursor-pointer h-2 bg-slate-700 rounded-lg appearance-none" min="0" max="100" value="0" step="0.1" oninput="seekVideoDrag(this.value)" onchange="seekVideoDrop(this.value)">
                 
-                <button onclick="changeSpeed()" id="speedBtn" class="text-xs md:text-sm font-bold bg-slate-800 border border-slate-600 px-2 py-1 rounded hover:text-cyan-400 transition w-10 text-center">1x</button>
+                <button onclick="changeSpeed()" id="speedBtn" class="text-xs font-black bg-white text-black px-2 py-1 rounded hover:bg-cyan-500 hover:text-white transition min-w-[40px]">1x</button>
 
-                <button onclick="toggleMute()" id="muteBtn" class="text-lg md:text-xl hover:text-cyan-400 transition w-8">
+                <button onclick="toggleMute()" id="muteBtn" class="text-white hover:text-cyan-400 transition w-8">
                     <i class="fa-solid fa-volume-high"></i>
                 </button>
                 
-                <button onclick="toggleFullscreen()" class="text-lg md:text-xl hover:text-cyan-400 transition w-8">
+                <button onclick="toggleFullscreen()" class="text-white hover:text-cyan-400 transition w-8">
                     <i class="fa-solid fa-expand"></i>
                 </button>
             </div>
-            
         </div>
-        <h3 id="videoModalTitle" class="text-white mt-4 text-lg md:text-2xl font-black tracking-wide text-center uppercase px-4"></h3>
+        <h3 id="videoModalTitle" class="text-white mt-4 text-lg md:text-2xl font-black tracking-wide text-center uppercase"></h3>
     </div>
 
     <script>
@@ -862,7 +861,11 @@
         function skipVideo(seconds) {
             if (ytPlayer && ytPlayer.getCurrentTime) {
                 const currentTime = ytPlayer.getCurrentTime();
-                ytPlayer.seekTo(currentTime + seconds, true);
+                const duration = ytPlayer.getDuration();
+                let newTime = currentTime + seconds;
+                if(newTime < 0) newTime = 0;
+                if(newTime > duration) newTime = duration;
+                ytPlayer.seekTo(newTime, true);
             }
         }
 
@@ -890,19 +893,21 @@
 
         // دوال شريط السحب الجديدة
         function seekVideoDrag(val) {
-            isDragging = true; // نوقف تحديث الشريط التلقائي عشان الماوس ميرعش
+            isDragging = true;
             if (ytPlayer && ytPlayer.getDuration) {
-                const time = (val / 100) * ytPlayer.getDuration();
+                const duration = ytPlayer.getDuration();
+                const time = (val / 100) * duration;
                 document.getElementById('timeDisplay').innerText = formatTime(time);
             }
         }
 
         function seekVideoDrop(val) {
             if (ytPlayer && ytPlayer.getDuration) {
-                const newTime = (val / 100) * ytPlayer.getDuration();
+                const duration = ytPlayer.getDuration();
+                const newTime = (val / 100) * duration;
                 ytPlayer.seekTo(newTime, true);
             }
-            isDragging = false; // نرجع التحديث التلقائي
+            isDragging = false;
         }
 
         function startProgressBar() {
@@ -925,14 +930,20 @@
             return `${min}:${sec < 10 ? '0' : ''}${sec}`;
         }
 
-        // الفول إسكرين والدوران التلقائي
         function toggleFullscreen() {
-            const container = document.getElementById('videoPlayerContainer'); // هنا التعديل عشان نكبر الكنترولز مع الفيديو
+            const container = document.getElementById('videoPlayerContainer');
+            
             if (!document.fullscreenElement) {
-                if (container.requestFullscreen) container.requestFullscreen().then(lockLandscape);
-                else if (container.webkitRequestFullscreen) { container.webkitRequestFullscreen(); lockLandscape(); }
+                if (container.requestFullscreen) {
+                    container.requestFullscreen().then(lockLandscape);
+                } else if (container.webkitRequestFullscreen) { /* Safari */
+                    container.webkitRequestFullscreen();
+                    lockLandscape();
+                }
             } else {
-                if (document.exitFullscreen) document.exitFullscreen().then(unlockOrientation);
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().then(unlockOrientation);
+                }
             }
         }
 

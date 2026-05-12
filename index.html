@@ -385,6 +385,26 @@
 
             <button onclick="location.reload()" class="mt-8 font-bold underline text-gray-500 hover:text-black">العودة للرئيسية</button>
         </section>
+        <footer class="mt-16 mb-8 reveal-up">
+            <div class="card-neo p-6 md:p-10 bg-black text-white text-center flex flex-col items-center justify-center gap-4 relative overflow-hidden group">
+                <div class="absolute -left-6 -bottom-6 text-gray-800 opacity-30 text-8xl group-hover:rotate-12 transition-transform duration-500">
+                    <i class="fa-solid fa-code"></i>
+                </div>
+                
+                <p class="text-xs md:text-sm font-bold tracking-[0.3em] text-gray-400 uppercase z-10">
+                    Designed & Developed by
+                </p>
+                
+                <h3 class="text-2xl md:text-4xl font-black uppercase tracking-widest z-10 mb-2">
+                    Abd Elrahman Tarek
+                </h3>
+                
+                <a href="https://man9000442-hub.github.io/Eng-Abdelrahman-prot/" target="_blank" class="z-10 bg-white text-black border-2 border-white hover:bg-black hover:text-white transition-all duration-300 px-8 py-3 font-black text-sm uppercase flex items-center gap-3 shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] hover:shadow-none hover:translate-x-1 hover:translate-y-1">
+                    <span>Press Here</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </a>
+            </div>
+        </footer>
 
     </div>
 
@@ -404,11 +424,37 @@
         <button onclick="closeVideoModal()" class="absolute top-6 right-6 text-white hover:text-red-500 transition text-4xl z-50">
             <i class="fa-solid fa-xmark"></i>
         </button>
-        <div class="w-full max-w-5xl aspect-video bg-black rounded-xl overflow-hidden border-2 border-gray-700 shadow-[0_0_40px_rgba(255,255,255,0.1)] relative">
-            <!-- مشغل اليوتيوب -->
-            <iframe id="youtubePlayer" class="absolute top-0 left-0 w-full h-full" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        
+        <div class="w-full max-w-5xl bg-black rounded-xl overflow-hidden border-2 border-gray-700 shadow-[0_0_40px_rgba(255,255,255,0.1)] relative flex flex-col">
+            
+            <div class="relative w-full aspect-video">
+                <div class="absolute inset-0 z-10 cursor-pointer" onclick="togglePlayPause()"></div>
+                
+                <div id="youtubePlayer" class="absolute top-0 left-0 w-full h-full pointer-events-none"></div>
+            </div>
+
+            <div class="bg-slate-900 text-white p-3 md:p-4 flex items-center gap-3 md:gap-4 z-20 relative select-none">
+                <button onclick="togglePlayPause()" id="playPauseBtn" class="text-xl md:text-2xl hover:text-cyan-400 transition w-8">
+                    <i class="fa-solid fa-play"></i>
+                </button>
+                
+                <div class="text-xs md:text-sm font-mono text-center w-12 md:w-16" id="timeDisplay">0:00</div>
+                
+                <div class="flex-1 relative group cursor-pointer h-2 bg-slate-700 rounded-full" onclick="seekVideo(event)" id="progressContainer">
+                    <div id="progressBar" class="absolute top-0 left-0 h-full bg-cyan-500 rounded-full w-0 transition-all duration-100"></div>
+                </div>
+                
+                <button onclick="toggleMute()" id="muteBtn" class="text-lg md:text-xl hover:text-cyan-400 transition w-8">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                
+                <button onclick="toggleFullscreen()" class="text-lg md:text-xl hover:text-cyan-400 transition w-8">
+                    <i class="fa-solid fa-expand"></i>
+                </button>
+            </div>
+            
         </div>
-        <h3 id="videoModalTitle" class="text-white mt-6 text-2xl font-black tracking-wide text-center uppercase"></h3>
+        <h3 id="videoModalTitle" class="text-white mt-6 text-xl md:text-2xl font-black tracking-wide text-center uppercase"></h3>
     </div>
 
     <script>
@@ -722,10 +768,30 @@
         // ==========================================
         // نظام تشغيل الفيديوهات المدمج (Embed Player)
         // ==========================================
+        // ==========================================
+        // نظام تشغيل الفيديوهات المدمج (Custom YouTube API)
+        // ==========================================
+        
+        // تحميل مكتبة YouTube Iframe API
+        let tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        let firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        let ytPlayer;
+        let progressInterval;
+        let isPlaying = false;
+        let isMuted = false;
+
         function extractYouTubeID(url) {
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
             const match = url.match(regExp);
             return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        // هذه الدالة يناديها يوتيوب تلقائياً عندما تكون المكتبة جاهزة
+        function onYouTubeIframeAPIReady() {
+            // نتركها فارغة، لأننا ننشئ المشغل عند فتح النافذة
         }
 
         function openVideoModal(url, title) {
@@ -734,16 +800,33 @@
                 alert("رابط الفيديو غير صالح.");
                 return;
             }
-            
-            // إضافة بارامترات لإخفاء اللوجو والفيديوهات المقترحة وتشغيل تلقائي
-            const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&showinfo=0`;
-            
-            document.getElementById('youtubePlayer').src = embedUrl;
+
             document.getElementById('videoModalTitle').textContent = title;
-            
             const modal = document.getElementById('videoModal');
             modal.classList.remove('hidden');
             setTimeout(() => { modal.classList.remove('opacity-0'); }, 10);
+
+            // إعداد المشغل أو تحديث الفيديو
+            if (!ytPlayer) {
+                ytPlayer = new YT.Player('youtubePlayer', {
+                    videoId: videoId,
+                    playerVars: {
+                        'autoplay': 1,
+                        'controls': 0,      // إخفاء تحكمات يوتيوب
+                        'disablekb': 1,     // إيقاف الكيبورد ليوتيوب
+                        'modestbranding': 1, // إخفاء لوجو يوتيوب قدر الإمكان
+                        'rel': 0,           // منع الفيديوهات المقترحة الخارجية
+                        'showinfo': 0,
+                        'fs': 0             // منع تكبير الشاشة الأساسي
+                    },
+                    events: {
+                        'onReady': onPlayerReady,
+                        'onStateChange': onPlayerStateChange
+                    }
+                });
+            } else {
+                ytPlayer.loadVideoById(videoId);
+            }
         }
 
         function closeVideoModal() {
@@ -751,9 +834,101 @@
             modal.classList.add('opacity-0');
             setTimeout(() => { 
                 modal.classList.add('hidden'); 
-                // تفريغ الرابط لإيقاف الصوت والفيديو تماماً عند الإغلاق
-                document.getElementById('youtubePlayer').src = ""; 
+                if (ytPlayer && ytPlayer.stopVideo) {
+                    ytPlayer.stopVideo();
+                }
+                clearInterval(progressInterval);
             }, 300);
+        }
+
+        // --- دوال أزرار التحكم الخاصة بنا ---
+
+        function onPlayerReady(event) {
+            event.target.playVideo();
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data == YT.PlayerState.PLAYING) {
+                isPlaying = true;
+                document.getElementById('playPauseBtn').innerHTML = '<i class="fa-solid fa-pause"></i>';
+                startProgressBar();
+            } else {
+                isPlaying = false;
+                document.getElementById('playPauseBtn').innerHTML = '<i class="fa-solid fa-play"></i>';
+                clearInterval(progressInterval);
+            }
+        }
+
+        function togglePlayPause() {
+            if (isPlaying) {
+                ytPlayer.pauseVideo();
+            } else {
+                ytPlayer.playVideo();
+            }
+        }
+
+        function toggleMute() {
+            if (isMuted) {
+                ytPlayer.unMute();
+                isMuted = false;
+                document.getElementById('muteBtn').innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+            } else {
+                ytPlayer.mute();
+                isMuted = true;
+                document.getElementById('muteBtn').innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
+            }
+        }
+
+        function seekVideo(event) {
+            const container = document.getElementById('progressContainer');
+            const rect = container.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            const percentage = clickX / rect.width;
+            
+            const duration = ytPlayer.getDuration();
+            const newTime = duration * percentage;
+            
+            ytPlayer.seekTo(newTime, true);
+        }
+
+        function startProgressBar() {
+            clearInterval(progressInterval);
+            progressInterval = setInterval(() => {
+                if(ytPlayer && ytPlayer.getCurrentTime) {
+                    const currentTime = ytPlayer.getCurrentTime();
+                    const duration = ytPlayer.getDuration();
+                    
+                    // تحديث الشريط
+                    const percentage = (currentTime / duration) * 100;
+                    document.getElementById('progressBar').style.width = percentage + '%';
+                    
+                    // تحديث الوقت كنص
+                    document.getElementById('timeDisplay').innerText = formatTime(currentTime);
+                }
+            }, 500);
+        }
+
+        function formatTime(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
+
+        function toggleFullscreen() {
+            const modal = document.querySelector('#videoModal .max-w-5xl');
+            if (!document.fullscreenElement) {
+                if (modal.requestFullscreen) {
+                    modal.requestFullscreen();
+                } else if (modal.webkitRequestFullscreen) { /* Safari */
+                    modal.webkitRequestFullscreen();
+                } else if (modal.msRequestFullscreen) { /* IE11 */
+                    modal.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
         }
     </script>
 </body>

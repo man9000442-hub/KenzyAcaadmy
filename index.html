@@ -420,30 +420,38 @@
     </div>
 
     <!-- نافذة عرض الفيديو (Cinematic Player) -->
-    <div id="videoModal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-[100] hidden flex-col items-center justify-center p-4 md:p-10 opacity-0 transition-opacity duration-300">
-        <button onclick="closeVideoModal()" class="absolute top-6 right-6 text-white hover:text-red-500 transition text-4xl z-50">
+    <div id="videoModal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-[100] hidden flex-col items-center justify-center p-2 md:p-10 opacity-0 transition-opacity duration-300">
+        <button onclick="closeVideoModal()" class="absolute top-4 right-4 md:top-6 md:right-6 text-white hover:text-red-500 transition text-3xl md:text-4xl z-50">
             <i class="fa-solid fa-xmark"></i>
         </button>
         
-        <div class="w-full max-w-5xl bg-black rounded-xl overflow-hidden border-2 border-gray-700 shadow-[0_0_40px_rgba(255,255,255,0.1)] relative flex flex-col">
+        <div id="videoPlayerContainer" class="w-full max-w-5xl bg-black rounded-xl overflow-hidden border-2 border-gray-700 shadow-[0_0_40px_rgba(255,255,255,0.1)] relative flex flex-col">
             
             <div class="relative w-full aspect-video">
                 <div class="absolute inset-0 z-10 cursor-pointer" onclick="togglePlayPause()"></div>
-                
                 <div id="youtubePlayer" class="absolute top-0 left-0 w-full h-full pointer-events-none"></div>
             </div>
 
-            <div class="bg-slate-900 text-white p-3 md:p-4 flex items-center gap-3 md:gap-4 z-20 relative select-none">
-                <button onclick="togglePlayPause()" id="playPauseBtn" class="text-xl md:text-2xl hover:text-cyan-400 transition w-8">
+            <div class="bg-slate-900 text-white p-3 flex items-center gap-3 z-20 relative select-none flex-wrap md:flex-nowrap">
+                
+                <button onclick="skipVideo(-10)" class="text-lg hover:text-cyan-400 transition w-8">
+                    <i class="fa-solid fa-backward-rotate-10"></i>
+                </button>
+
+                <button onclick="togglePlayPause()" id="playPauseBtn" class="text-2xl hover:text-cyan-400 transition w-8 text-center">
                     <i class="fa-solid fa-play"></i>
                 </button>
+
+                <button onclick="skipVideo(10)" class="text-lg hover:text-cyan-400 transition w-8">
+                    <i class="fa-solid fa-forward-rotate-10"></i>
+                </button>
                 
-                <div class="text-xs md:text-sm font-mono text-center w-12 md:w-16" id="timeDisplay">0:00</div>
+                <div class="text-xs md:text-sm font-mono text-center w-12" id="timeDisplay">0:00</div>
                 
-                <div class="flex-1 relative group cursor-pointer h-2 bg-slate-700 rounded-full" onclick="seekVideo(event)" id="progressContainer">
-                    <div id="progressBar" class="absolute top-0 left-0 h-full bg-cyan-500 rounded-full w-0 transition-all duration-100"></div>
-                </div>
+                <input type="range" id="progressBar" class="flex-1 accent-cyan-500 cursor-pointer h-1.5 md:h-2 bg-slate-700 rounded-lg appearance-none" min="0" max="100" value="0" step="0.1" oninput="seekVideoDrag(this.value)" onchange="seekVideoDrop(this.value)">
                 
+                <button onclick="changeSpeed()" id="speedBtn" class="text-xs md:text-sm font-bold bg-slate-800 border border-slate-600 px-2 py-1 rounded hover:text-cyan-400 transition w-10 text-center">1x</button>
+
                 <button onclick="toggleMute()" id="muteBtn" class="text-lg md:text-xl hover:text-cyan-400 transition w-8">
                     <i class="fa-solid fa-volume-high"></i>
                 </button>
@@ -454,7 +462,7 @@
             </div>
             
         </div>
-        <h3 id="videoModalTitle" class="text-white mt-6 text-xl md:text-2xl font-black tracking-wide text-center uppercase"></h3>
+        <h3 id="videoModalTitle" class="text-white mt-4 text-lg md:text-2xl font-black tracking-wide text-center uppercase px-4"></h3>
     </div>
 
     <script>
@@ -771,8 +779,6 @@
         // ==========================================
         // نظام تشغيل الفيديوهات المدمج (Custom YouTube API)
         // ==========================================
-        
-        // تحميل مكتبة YouTube Iframe API
         let tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         let firstScriptTag = document.getElementsByTagName('script')[0];
@@ -782,6 +788,9 @@
         let progressInterval;
         let isPlaying = false;
         let isMuted = false;
+        let isDragging = false; // متغير جديد لمنع تضارب الوقت أثناء السحب
+        const speeds = [1, 1.25, 1.5, 2, 0.5]; // سرعات الفيديو
+        let currentSpeedIdx = 0;
 
         function extractYouTubeID(url) {
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -789,44 +798,34 @@
             return (match && match[2].length === 11) ? match[2] : null;
         }
 
-        // هذه الدالة يناديها يوتيوب تلقائياً عندما تكون المكتبة جاهزة
-        function onYouTubeIframeAPIReady() {
-            // نتركها فارغة، لأننا ننشئ المشغل عند فتح النافذة
-        }
+        function onYouTubeIframeAPIReady() {}
 
         function openVideoModal(url, title) {
             const videoId = extractYouTubeID(url);
-            if (!videoId) {
-                alert("رابط الفيديو غير صالح.");
-                return;
-            }
+            if (!videoId) { alert("رابط الفيديو غير صالح."); return; }
 
             document.getElementById('videoModalTitle').textContent = title;
             const modal = document.getElementById('videoModal');
             modal.classList.remove('hidden');
             setTimeout(() => { modal.classList.remove('opacity-0'); }, 10);
 
-            // إعداد المشغل أو تحديث الفيديو
             if (!ytPlayer) {
                 ytPlayer = new YT.Player('youtubePlayer', {
                     videoId: videoId,
                     playerVars: {
-                        'autoplay': 1,
-                        'controls': 0,      // إخفاء تحكمات يوتيوب
-                        'disablekb': 1,     // إيقاف الكيبورد ليوتيوب
-                        'modestbranding': 1, // إخفاء لوجو يوتيوب قدر الإمكان
-                        'rel': 0,           // منع الفيديوهات المقترحة الخارجية
-                        'showinfo': 0,
-                        'fs': 0             // منع تكبير الشاشة الأساسي
+                        'autoplay': 1, 'controls': 0, 'disablekb': 1, 
+                        'modestbranding': 1, 'rel': 0, 'showinfo': 0, 'fs': 0, 'playsinline': 1
                     },
-                    events: {
-                        'onReady': onPlayerReady,
-                        'onStateChange': onPlayerStateChange
-                    }
+                    events: { 'onReady': onPlayerReady, 'onStateChange': onPlayerStateChange }
                 });
             } else {
                 ytPlayer.loadVideoById(videoId);
             }
+            
+            // إعادة ضبط الإعدادات عند فتح فيديو جديد
+            document.getElementById('speedBtn').innerText = '1x';
+            currentSpeedIdx = 0;
+            document.getElementById('progressBar').value = 0;
         }
 
         function closeVideoModal() {
@@ -834,18 +833,13 @@
             modal.classList.add('opacity-0');
             setTimeout(() => { 
                 modal.classList.add('hidden'); 
-                if (ytPlayer && ytPlayer.stopVideo) {
-                    ytPlayer.stopVideo();
-                }
+                if (ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
                 clearInterval(progressInterval);
+                if (document.fullscreenElement) document.exitFullscreen(); // الخروج من الفول إسكرين لو كان مفتوح
             }, 300);
         }
 
-        // --- دوال أزرار التحكم الخاصة بنا ---
-
-        function onPlayerReady(event) {
-            event.target.playVideo();
-        }
+        function onPlayerReady(event) { event.target.playVideo(); }
 
         function onPlayerStateChange(event) {
             if (event.data == YT.PlayerState.PLAYING) {
@@ -860,10 +854,25 @@
         }
 
         function togglePlayPause() {
-            if (isPlaying) {
-                ytPlayer.pauseVideo();
-            } else {
-                ytPlayer.playVideo();
+            if (isPlaying) ytPlayer.pauseVideo();
+            else ytPlayer.playVideo();
+        }
+
+        // دالة التقديم والتأخير 10 ثواني
+        function skipVideo(seconds) {
+            if (ytPlayer && ytPlayer.getCurrentTime) {
+                const currentTime = ytPlayer.getCurrentTime();
+                ytPlayer.seekTo(currentTime + seconds, true);
+            }
+        }
+
+        // دالة تغيير السرعة
+        function changeSpeed() {
+            if(ytPlayer && ytPlayer.setPlaybackRate) {
+                currentSpeedIdx = (currentSpeedIdx + 1) % speeds.length;
+                const speed = speeds[currentSpeedIdx];
+                ytPlayer.setPlaybackRate(speed);
+                document.getElementById('speedBtn').innerText = speed + 'x';
             }
         }
 
@@ -879,55 +888,64 @@
             }
         }
 
-        function seekVideo(event) {
-            const container = document.getElementById('progressContainer');
-            const rect = container.getBoundingClientRect();
-            const clickX = event.clientX - rect.left;
-            const percentage = clickX / rect.width;
-            
-            const duration = ytPlayer.getDuration();
-            const newTime = duration * percentage;
-            
-            ytPlayer.seekTo(newTime, true);
+        // دوال شريط السحب الجديدة
+        function seekVideoDrag(val) {
+            isDragging = true; // نوقف تحديث الشريط التلقائي عشان الماوس ميرعش
+            if (ytPlayer && ytPlayer.getDuration) {
+                const time = (val / 100) * ytPlayer.getDuration();
+                document.getElementById('timeDisplay').innerText = formatTime(time);
+            }
+        }
+
+        function seekVideoDrop(val) {
+            if (ytPlayer && ytPlayer.getDuration) {
+                const newTime = (val / 100) * ytPlayer.getDuration();
+                ytPlayer.seekTo(newTime, true);
+            }
+            isDragging = false; // نرجع التحديث التلقائي
         }
 
         function startProgressBar() {
             clearInterval(progressInterval);
             progressInterval = setInterval(() => {
-                if(ytPlayer && ytPlayer.getCurrentTime) {
+                if(ytPlayer && ytPlayer.getCurrentTime && !isDragging) {
                     const currentTime = ytPlayer.getCurrentTime();
                     const duration = ytPlayer.getDuration();
-                    
-                    // تحديث الشريط
                     const percentage = (currentTime / duration) * 100;
-                    document.getElementById('progressBar').style.width = percentage + '%';
-                    
-                    // تحديث الوقت كنص
+                    document.getElementById('progressBar').value = percentage;
                     document.getElementById('timeDisplay').innerText = formatTime(currentTime);
                 }
             }, 500);
         }
 
         function formatTime(seconds) {
+            if(!seconds) return "0:00";
             const min = Math.floor(seconds / 60);
             const sec = Math.floor(seconds % 60);
             return `${min}:${sec < 10 ? '0' : ''}${sec}`;
         }
 
+        // الفول إسكرين والدوران التلقائي
         function toggleFullscreen() {
-            const modal = document.querySelector('#videoModal .max-w-5xl');
+            const container = document.getElementById('videoPlayerContainer'); // هنا التعديل عشان نكبر الكنترولز مع الفيديو
             if (!document.fullscreenElement) {
-                if (modal.requestFullscreen) {
-                    modal.requestFullscreen();
-                } else if (modal.webkitRequestFullscreen) { /* Safari */
-                    modal.webkitRequestFullscreen();
-                } else if (modal.msRequestFullscreen) { /* IE11 */
-                    modal.msRequestFullscreen();
-                }
+                if (container.requestFullscreen) container.requestFullscreen().then(lockLandscape);
+                else if (container.webkitRequestFullscreen) { container.webkitRequestFullscreen(); lockLandscape(); }
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
+                if (document.exitFullscreen) document.exitFullscreen().then(unlockOrientation);
+            }
+        }
+
+        function lockLandscape() {
+            // محاولة قلب الشاشة بالعرض للموبايلات
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock("landscape").catch(err => console.log("Orientation lock failed:", err));
+            }
+        }
+
+        function unlockOrientation() {
+            if (screen.orientation && screen.orientation.unlock) {
+                screen.orientation.unlock();
             }
         }
     </script>

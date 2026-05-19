@@ -165,7 +165,7 @@
             </button>
 
             <div class="card-neo p-8 md:p-12 reveal-up">
-                <h2 class="text-2xl font-black text-center mb-8 uppercase tracking-wide">بيانات الطالب</h2>
+                <h2 class="text-2xl font-black text-center mb-8 uppercase tracking-wide">(يتم فتح الاختبار مره واحده للجهاز الواحد)بيانات الطالب</h2>
                 <div class="space-y-6">
                     <div>
                         <label class="block text-sm font-bold uppercase tracking-wider mb-2 text-gray-500">اسم الطالب</label>
@@ -392,6 +392,11 @@
                 if (!activeQuiz.length) throw new Error("لا يوجد امتحان متاح.");
                 currentQuizId = activeQuiz[0].id;
 
+                // منع التكرار من نفس الجهاز بالاعتماد على البصمة
+                if (localStorage.getItem('kenzy_completed_quiz_' + currentQuizId) === 'true') {
+                    throw new Error("عذراً، لقد قمت بأداء هذا الاختبار مسبقاً من هذا الجهاز.");
+                }
+
                 const existingResult = await supabaseRequest('GET', 'kenzy_results', `?student_code=eq.${code}&quiz_id=eq.${currentQuizId}&limit=1`);
                 if (existingResult.length > 0) throw new Error("لقد امتحنت مسبقاً.");
 
@@ -441,6 +446,10 @@
             questions.forEach(q => { const picked = document.querySelector(`input[name="q${q.id}"]:checked`); if (picked && picked.value === q.correct) score++; });
             try {
                 await supabaseRequest('POST', 'kenzy_results', '', { student_name: student.name, student_code: student.code, class_name: student.className, quiz_id: currentQuizId, score: score, total_questions: questions.length });
+                
+                // حفظ بصمة في المتصفح لمنع تكرار الامتحان
+                localStorage.setItem('kenzy_completed_quiz_' + currentQuizId, 'true');
+
                 student.score = `${score}/${questions.length}`;
                 const encryptedText = CryptoJS.AES.encrypt(JSON.stringify({ name: student.name, code: student.code, score: student.score }), SECRET_KEY).toString();
                 document.getElementById("progress-container").classList.add("hidden"); document.getElementById("quiz-section").classList.add("hidden"); document.getElementById("finalResultContainer").classList.remove("hidden");

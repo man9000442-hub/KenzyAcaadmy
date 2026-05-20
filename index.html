@@ -446,7 +446,7 @@
             let score = 0;
             questions.forEach(q => { const picked = document.querySelector(`input[name="q${q.id}"]:checked`); if (picked && picked.value === q.correct) score++; });
             try {
-                await supabaseRequest('POST', 'kenzy_results', '', { student_name: student.name, student_code: student.code, class_name: student.className, quiz_id: currentQuizId, score: score, total_questions: questions.length });
+                await supabaseRequest('POST', 'kenzy_results', '', { student_name: student.name, student_code: student.code, class_name: student.className, group_name: student.groupName, quiz_id: currentQuizId, score: score, total_questions: questions.length });
                 
                 // حفظ بصمة في المتصفح لمنع تكرار الامتحان
                 localStorage.setItem('kenzy_completed_quiz_' + currentQuizId, 'true');

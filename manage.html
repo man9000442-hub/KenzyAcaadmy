@@ -185,12 +185,24 @@
             <div id="honor-view" class="hidden">
                 <div class="glass-panel p-4 rounded-3xl mb-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100">
                     <div class="flex flex-col gap-3">
-                        <select id="honorClassFilter" class="modern-input border-amber-200 bg-white focus:border-amber-400">
-                            <option value="all">كل الصفوف (المجاميع)</option>
-                            <option value="الصف الأول الثانوي">الصف الأول الثانوي</option>
-                            <option value="الصف الثاني الثانوي">الصف الثاني الثانوي</option>
-                            <option value="الصف الثالث الثانوي">الصف الثالث الثانوي</option>
-                        </select>
+                        <div class="flex flex-col md:flex-row gap-3">
+                            <select id="honorClassFilter" class="modern-input border-amber-200 bg-white focus:border-amber-400 flex-1">
+                                <option value="الصف الأول الثانوي" selected>الصف الأول الثانوي</option>
+                                <option value="الصف الثاني الثانوي">الصف الثاني الثانوي</option>
+                                <option value="الصف الثالث الثانوي">الصف الثالث الثانوي</option>
+                            </select>
+                            
+                            <select id="honorGroupFilter" class="modern-input border-amber-200 bg-white focus:border-amber-400 flex-1">
+                                <option value="all" selected>كل مجاميع الصف المختار</option>
+                                <option value="السبت">السبت</option>
+                                <option value="الأحد">الأحد</option>
+                                <option value="الإثنين">الإثنين</option>
+                                <option value="الثلاثاء">الثلاثاء</option>
+                                <option value="الأربعاء">الأربعاء</option>
+                                <option value="الخميس">الخميس</option>
+                                <option value="الجمعة">الجمعة</option>
+                            </select>
+                        </div>
                         <button onclick="fetchHonorRoll()" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-bold transition shadow-lg w-full flex items-center justify-center gap-2">
                             <i class="fas fa-sync-alt"></i> تحديث لوحة الشرف
                         </button>
@@ -203,7 +215,7 @@
                                 <tr>
                                     <th class="p-4 text-center">#</th>
                                     <th class="p-4 font-bold">الاسم</th>
-                                    <th class="p-4">الصف</th>
+                                    <th class="p-4">المجموعة</th>
                                     <th class="p-4 text-center font-bold">النقاط</th>
                                 </tr>
                             </thead>
@@ -235,10 +247,10 @@
                 <h2 class="text-xl font-black text-indigo-900 mb-2 flex items-center gap-2"><i class="fas fa-book-reader text-indigo-600 text-2xl"></i> دليل إدارة المنصة</h2>
                 <p class="text-sm text-slate-600 font-bold mb-6">مرحباً بك! هذا الدليل السريع يشرح لك كيفية التحكم في المنصة بخطوات بسيطة.</p>
                 <div class="space-y-4 pb-8">
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm"><h3 class="font-black text-slate-800 mb-2"><i class="fas fa-video text-rose-500 ml-1"></i> 1. مكتبة الفيديوهات</h3><ul class="text-sm text-slate-600 space-y-2 list-disc list-inside"><li>ارفع الفيديو على يوتيوب واجعله <strong>"غير مدرج" (Unlisted)</strong> ليتم حمايته.</li><li>انسخ الرابط، ضعه في خانة (إضافة فيديو)، وحدد الصف التابع له.</li><li>سيظهر الفيديو تلقائياً للطلاب في مشغل المنصة الداخلي بدون إعلانات.</li></ul></div>
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm"><h3 class="font-black text-slate-800 mb-2"><i class="fas fa-file-signature text-amber-500 ml-1"></i> 2. إدارة الامتحانات</h3><ul class="text-sm text-slate-600 space-y-2 list-disc list-inside"><li>قم بإنشاء امتحان جديد بوضع اسمه وتحديد الصف.</li><li>اضغط على زر <strong>(الأسئلة)</strong> لإضافة الأسئلة.</li><li><strong>مهم جداً:</strong> استخدم زر التفعيل (الأخضر) ليتمكن الطلاب من الدخول إليه.</li></ul></div>
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm"><h3 class="font-black text-slate-800 mb-2"><i class="fas fa-qrcode text-emerald-500 ml-1"></i> 3. نظام فحص الـ QR</h3><ul class="text-sm text-slate-600 space-y-2 list-disc list-inside"><li>افتح هذا القسم ووجه كاميرا هاتفك لهاتف الطالب بعد إنهائه الامتحان لتظهر نتيجته الموثقة.</li></ul></div>
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm"><h3 class="font-black text-slate-800 mb-2"><i class="fas fa-poll text-blue-500 ml-1"></i> 4. الدرجات ولوحة الشرف</h3><ul class="text-sm text-slate-600 space-y-2 list-disc list-inside"><li>كل طالب ينهي اختباره يُحفظ في سجل الدرجات.</li><li>انتقل لتاب "لوحة الشرف" لمعرفة أوائل الطلبة مصنفين بالنقاط الإجمالية للصف والمجموعة.</li></ul></div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm"><h3 class="font-black text-slate-800 mb-2"><i class="fas fa-video text-rose-500 ml-1"></i> 1. مكتبة الفيديوهات</h3><ul class="text-sm text-slate-600 space-y-2 list-disc list-inside"><li>ارفع الفيديو على يوتيوب واجعله <strong>"غير مدرج" (Unlisted)</strong>.</li><li>انسخ الرابط، ضعه في خانة الإضافة، وحدد الصف.</li></ul></div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm"><h3 class="font-black text-slate-800 mb-2"><i class="fas fa-file-signature text-amber-500 ml-1"></i> 2. إدارة الامتحانات</h3><ul class="text-sm text-slate-600 space-y-2 list-disc list-inside"><li>استخدم زر التفعيل (الأخضر) ليتمكن الطلاب من الدخول إليه.</li></ul></div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm"><h3 class="font-black text-slate-800 mb-2"><i class="fas fa-qrcode text-emerald-500 ml-1"></i> 3. نظام فحص الـ QR</h3><ul class="text-sm text-slate-600 space-y-2 list-disc list-inside"><li>وجه كاميرا هاتفك لهاتف الطالب بعد إنهائه الامتحان لتظهر نتيجته.</li></ul></div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm"><h3 class="font-black text-slate-800 mb-2"><i class="fas fa-poll text-blue-500 ml-1"></i> 4. الدرجات ولوحة الشرف</h3><ul class="text-sm text-slate-600 space-y-2 list-disc list-inside"><li>يمكنك فرز وتصفية أوائل الطلاب حسب الصف والمجموعة من تاب لوحة الشرف.</li></ul></div>
                 </div>
             </div>
         </div>
@@ -432,7 +444,6 @@
             } catch(e){}
         }
 
-        // --- دوال تبديل وعرض الدرجات ولوحة الشرف ---
         function switchResultView(view, btn) {
             document.getElementById('list-view').classList.add('hidden');
             document.getElementById('honor-view').classList.add('hidden');
@@ -467,19 +478,25 @@
             renderResults(filtered);
         }
 
-        // --- دالة لوحة الشرف الجديدة ---
+        // --- دالة لوحة الشرف المحدثة (الفرز بالصف إجباري ثم المجموعة) ---
         async function fetchHonorRoll() {
             const tb = document.getElementById('honorTableBody');
             tb.innerHTML = '<tr><td colspan="4" class="text-center p-8 text-amber-500"><i class="fas fa-circle-notch fa-spin text-2xl"></i></td></tr>';
             
             try {
                 const clsFilter = document.getElementById('honorClassFilter').value;
-                let query = '?select=*';
-                if(clsFilter !== 'all') query += `&class_name=eq.${encodeURIComponent(clsFilter)}`;
+                const grpFilter = document.getElementById('honorGroupFilter').value;
+                
+                // جلب نتائج الصف المحدد إجبارياً
+                let query = `?select=*&class_name=eq.${encodeURIComponent(clsFilter)}`;
+                
+                // التصفية بالمجموعة إن وجدت
+                if(grpFilter !== 'all') {
+                    query += `&group_name=eq.${encodeURIComponent(grpFilter)}`;
+                }
                 
                 const results = await supabaseRequest('GET', 'kenzy_results', query);
                 
-                // تجميع درجات كل طالب بكوده
                 const studentMap = {};
                 results.forEach(r => {
                     if(!studentMap[r.student_code]) {
@@ -487,6 +504,7 @@
                             name: r.student_name,
                             code: r.student_code,
                             cls: r.class_name,
+                            grp: r.group_name || 'غير محدد',
                             totalScore: 0
                         };
                     }
@@ -494,10 +512,10 @@
                 });
                 
                 const arr = Object.values(studentMap);
-                arr.sort((a, b) => b.totalScore - a.totalScore); // ترتيب من الأعلى للأقل
+                arr.sort((a, b) => b.totalScore - a.totalScore); 
                 
                 if(arr.length === 0) {
-                    tb.innerHTML = '<tr><td colspan="4" class="text-center p-8 text-slate-400 font-bold">لا يوجد بيانات</td></tr>';
+                    tb.innerHTML = '<tr><td colspan="4" class="text-center p-8 text-slate-400 font-bold">لا يوجد بيانات مطابقة للبحث</td></tr>';
                     return;
                 }
                 
@@ -511,7 +529,7 @@
                         <tr class="hover:bg-amber-50/50 transition border-b border-amber-50">
                             <td class="p-4 align-middle text-center">${medal}</td>
                             <td class="p-4 font-black text-slate-800 text-lg align-middle">${s.name} <br> <span class="font-mono text-rose-500 font-bold text-xs">${s.code}</span></td>
-                            <td class="p-4 text-xs text-slate-500 font-bold align-middle">${s.cls}</td>
+                            <td class="p-4 text-xs text-slate-500 font-bold align-middle">${s.grp}</td>
                             <td class="p-4 text-center align-middle">
                                 <span class="bg-emerald-100 text-emerald-700 px-4 py-2 rounded-xl font-black text-xl shadow-sm">${s.totalScore}</span>
                             </td>
@@ -524,7 +542,6 @@
             }
         }
 
-        // --- دوال فحص QR Code ---
         function initScanner() {
             document.getElementById('scanResult').classList.add('hidden'); document.getElementById('reader').classList.remove('hidden');
             if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
